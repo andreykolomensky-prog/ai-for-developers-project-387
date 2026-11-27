@@ -1,0 +1,1857 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><style>:root{color-scheme:light}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style></head><body>
+<title>Хроника календаря звонков</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;600;700&family=Onest:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: one column of 920px "plates". Each plate is a self-contained figure;
+   the same plates are captured as images for the GitHub README. */
+:root {
+  --bg: #ffffff;
+  --plate: #ffffff;
+  --panel: #f6f8fa;
+  --panel-2: #eaeef2;
+  --ink: #1f2328;
+  --ink-2: #59636e;
+  --ink-3: #818b98;
+  --line: #d1d9e0;
+  --line-2: #e6e9ed;
+  /* роли: порядок и шаги проверены на различимость при дальтонизме */
+  --human: #cc3d82;
+  --claude: #f47230;
+  --opencode: #6a4ce2;
+  --actions: #00b894;
+  --hexlet: #257de0;
+  /* состояния: всегда со значком и подписью */
+  --good: #1a7f37;
+  --good-bg: #dafbe1;
+  --bad: #cf222e;
+  --bad-bg: #ffebe9;
+  --warn: #9a6700;
+  --warn-bg: #fff8c5;
+  --shot-ring: #d1d9e0;
+  --f-display: "Unbounded", "Onest", system-ui, sans-serif;
+  --f-text: "Onest", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0d1117;
+    --plate: #0d1117;
+    --panel: #151b23;
+    --panel-2: #212830;
+    --ink: #f0f6fc;
+    --ink-2: #9198a1;
+    --ink-3: #6e7681;
+    --line: #3d444d;
+    --line-2: #262c36;
+    --human: #e25fb0;
+    --claude: #e76624;
+    --opencode: #9887ef;
+    --actions: #00a888;
+    --hexlet: #338ced;
+    --good: #3fb950;
+    --good-bg: #12261e;
+    --bad: #f85149;
+    --bad-bg: #2c1519;
+    --warn: #d29922;
+    --warn-bg: #272115;
+    --shot-ring: #3d444d;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0d1117;
+  --plate: #0d1117;
+  --panel: #151b23;
+  --panel-2: #212830;
+  --ink: #f0f6fc;
+  --ink-2: #9198a1;
+  --ink-3: #6e7681;
+  --line: #3d444d;
+  --line-2: #262c36;
+  --human: #e25fb0;
+  --claude: #e76624;
+  --opencode: #9887ef;
+  --actions: #00a888;
+  --hexlet: #338ced;
+  --good: #3fb950;
+  --good-bg: #12261e;
+  --bad: #f85149;
+  --bad-bg: #2c1519;
+  --warn: #d29922;
+  --warn-bg: #272115;
+  --shot-ring: #3d444d;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--f-text);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+.page {
+  max-width: 968px;
+  margin: 0 auto;
+  padding-block: 40px 96px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+a { color: var(--hexlet); text-underline-offset: 3px; }
+a:focus-visible, summary:focus-visible, button:focus-visible { outline: 2px solid var(--hexlet); outline-offset: 2px; border-radius: 4px; }
+
+/* ——— страница вокруг плит ——— */
+.intro { display: flex; flex-direction: column; gap: 10px; padding-block: 8px 4px; }
+.intro .eyebrow, .part .eyebrow { font: 500 12px/1.4 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
+.intro h1 { font: 600 clamp(22px, 4.2vw, 30px)/1.2 var(--f-display); margin: 0; text-wrap: balance; }
+.intro p, .between { max-width: 68ch; margin: 0; color: var(--ink-2); }
+.between strong { color: var(--ink); font-weight: 600; }
+.toc { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.toc a { font: 500 12.5px/1 var(--f-mono); color: var(--ink); text-decoration: none; border: 1px solid var(--line); border-radius: 999px; padding: 7px 11px; }
+.toc a:hover { background: var(--panel); }
+.part { display: flex; flex-direction: column; gap: 6px; padding-top: 28px; border-top: 1px solid var(--line); }
+.part h2 { font: 600 clamp(20px, 3.6vw, 26px)/1.2 var(--f-display); margin: 0; text-wrap: balance; }
+.part p { margin: 0; max-width: 68ch; color: var(--ink-2); }
+
+.plate-wrap { overflow-x: auto; }
+.plate {
+  width: 920px;
+  background: var(--plate);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 36px 40px 34px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ——— общие детали плит ——— */
+.ph { display: flex; flex-direction: column; gap: 8px; }
+.tag { font: 500 11.5px/1.4 var(--f-mono); letter-spacing: .09em; text-transform: uppercase; color: var(--ink-2); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.tag b { font-weight: 600; color: var(--ink); }
+.ph h2 { font: 600 25px/1.22 var(--f-display); margin: 0; letter-spacing: -.01em; text-wrap: balance; max-width: 760px; }
+.ph .lede { font-size: 15.5px; line-height: 1.5; color: var(--ink-2); max-width: 700px; margin: 0; text-wrap: pretty; }
+.ph .lede b, .ph .lede strong { color: var(--ink); font-weight: 600; }
+.mono { font-family: var(--f-mono); font-size: .92em; }
+.num { font-family: var(--f-display); font-weight: 600; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.muted { color: var(--ink-2); }
+.foot { font-size: 12.5px; color: var(--ink-2); border-top: 1px solid var(--line-2); padding-top: 14px; display: flex; gap: 8px 18px; flex-wrap: wrap; align-items: center; }
+.foot b { color: var(--ink); font-weight: 600; }
+
+.ico { width: 18px; height: 18px; flex: none; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.ico.sm { width: 14px; height: 14px; stroke-width: 2; }
+.ico.lg { width: 24px; height: 24px; }
+.ico .f { fill: currentColor; stroke: none; }
+
+.chip { display: inline-flex; align-items: center; gap: 6px; font: 500 12px/1 var(--f-mono); padding: 5px 9px; border-radius: 999px; border: 1px solid var(--line); color: var(--ink); background: var(--plate); white-space: nowrap; }
+.chip.soft { background: var(--panel); border-color: transparent; }
+.chip.good { color: var(--good); background: var(--good-bg); border-color: transparent; }
+.chip.bad { color: var(--bad); background: var(--bad-bg); border-color: transparent; }
+.chip.warn { color: var(--warn); background: var(--warn-bg); border-color: transparent; }
+
+/* роли: цветная метка + подпись, цвет никогда не работает один */
+.role { display: inline-flex; align-items: center; gap: 7px; font: 600 12.5px/1 var(--f-text); color: var(--ink); white-space: nowrap; }
+.role::before { content: ""; width: 10px; height: 10px; border-radius: 3px; background: var(--rc, var(--ink-3)); flex: none; }
+.r-human { --rc: var(--human); }
+.r-claude { --rc: var(--claude); }
+.r-opencode { --rc: var(--opencode); }
+.r-actions { --rc: var(--actions); }
+.r-hexlet { --rc: var(--hexlet); }
+.legend { display: flex; gap: 8px 18px; flex-wrap: wrap; }
+
+.card { background: var(--panel); border-radius: 14px; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; }
+.card h3 { font: 600 15px/1.3 var(--f-text); margin: 0; }
+.card p { margin: 0; color: var(--ink-2); font-size: 13.5px; }
+.grid { display: grid; gap: 14px; }
+.g2 { grid-template-columns: 1fr 1fr; }
+.g3 { grid-template-columns: repeat(3, 1fr); }
+.g4 { grid-template-columns: repeat(4, 1fr); }
+.row { display: flex; gap: 14px; align-items: stretch; }
+.stack { display: flex; flex-direction: column; gap: 10px; }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20.5c0-4 3.8-6 8-6s8 2 8 6"/></symbol>
+    <symbol id="i-terminal" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3.5"/><path d="M7.5 9.5l3 2.5-3 2.5M13 15h3.5"/></symbol>
+    <symbol id="i-bot" viewBox="0 0 24 24"><rect x="4.5" y="8" width="15" height="12" rx="3.5"/><path d="M12 4.5V8M2.5 13v3M21.5 13v3"/><circle class="f" cx="12" cy="3.6" r="1.3"/><circle class="f" cx="9.2" cy="13.6" r="1.25"/><circle class="f" cx="14.8" cy="13.6" r="1.25"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M10.2 8.6l5.2 3.4-5.2 3.4z"/></symbol>
+    <symbol id="i-cap" viewBox="0 0 24 24"><path d="M2.5 9.5L12 5l9.5 4.5L12 14z"/><path d="M6.5 11.8V16c0 1.4 2.6 2.8 5.5 2.8s5.5-1.4 5.5-2.8v-4.2M21.5 9.5V15"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3.5"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.6l4.4 4.4L19 7.4"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.4 8-8 9-4.6-1-8-4-8-9V6z"/></symbol>
+    <symbol id="i-branch" viewBox="0 0 24 24"><circle cx="6" cy="5" r="2.2"/><circle cx="6" cy="19" r="2.2"/><circle cx="18" cy="8" r="2.2"/><path d="M6 7.2v9.6M18 10.2c0 4.4-12 1.8-12 6.6"/></symbol>
+    <symbol id="i-pr" viewBox="0 0 24 24"><circle cx="6" cy="6" r="2.2"/><circle cx="6" cy="18" r="2.2"/><circle cx="18" cy="18" r="2.2"/><path d="M6 8.2v7.6M18 15.8V10a3 3 0 0 0-3-3h-3.5M13.8 4.6L11.4 7l2.4 2.4"/></symbol>
+    <symbol id="i-issue" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle class="f" cx="12" cy="12" r="2.6"/></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12.5h5M10 16.5h5"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12s3.4-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.4 6.5-9.5 6.5S2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/></symbol>
+    <symbol id="i-pulse" viewBox="0 0 24 24"><path d="M3 12h4l2.2-6 4 12 2.2-6H21"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="3"/><path d="M8.2 11V8a3.8 3.8 0 0 1 7.6 0v3"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="3"/><path d="M11 18h2"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4l9 15.5H3z"/><path d="M12 10v4.2"/><circle class="f" cx="12" cy="16.8" r=".9"/></symbol>
+    <symbol id="i-repeat" viewBox="0 0 24 24"><path d="M4 11a8 8 0 0 1 14-4.6L20 8.5M20 4v4.5h-4.5M20 13a8 8 0 0 1-14 4.6L4 15.5M4 20v-4.5h4.5"/></symbol>
+    <symbol id="i-box" viewBox="0 0 24 24"><path d="M3.5 8L12 3.5 20.5 8v8L12 20.5 3.5 16z"/><path d="M3.5 8l8.5 4.5L20.5 8M12 12.5v8"/></symbol>
+    <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7.2 18.5h9.6a4 4 0 0 0 .7-7.94A6 6 0 0 0 6 9.8a4.4 4.4 0 0 0 1.2 8.7z"/></symbol>
+    <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 21V4h11l-2 4 2 4H5"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></symbol>
+    <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15.5" r="4"/><path d="M11 12.5L19.5 4M16 7.5l3 3M13.6 9.9l2 2"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5h16v11.5H9.5L4 20.5z"/></symbol>
+    <symbol id="i-code" viewBox="0 0 24 24"><path d="M9 7.5L4.5 12 9 16.5M15 7.5l4.5 4.5-4.5 4.5"/></symbol>
+    <symbol id="i-tag" viewBox="0 0 24 24"><path d="M3.5 12.2V4h8.2l9 9-8.2 8.2z"/><circle class="f" cx="8" cy="8.5" r="1.3"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6.5h11M9 12h11M9 17.5h11"/><circle class="f" cx="4.6" cy="6.5" r="1.2"/><circle class="f" cx="4.6" cy="12" r="1.2"/><circle class="f" cx="4.6" cy="17.5" r="1.2"/></symbol>
+    <symbol id="i-stop" viewBox="0 0 24 24"><path d="M8.3 3h7.4L21 8.3v7.4L15.7 21H8.3L3 15.7V8.3z"/><path d="M8.5 12h7"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h15M13.5 6.5L19 12l-5.5 5.5"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v15M6.5 13.5L12 19l5.5-5.5"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle class="f" cx="12" cy="12" r="1.5"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="M12 3.5l9 4.5-9 4.5L3 8z"/><path d="M3 12.5l9 4.5 9-4.5M3 16.5L12 21l9-4.5"/></symbol>
+    <symbol id="i-db" viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol>
+    <symbol id="i-wrench" viewBox="0 0 24 24"><path d="M14.5 6.5a4.5 4.5 0 0 0-6 5.7L3.5 17.2a2.3 2.3 0 0 0 3.3 3.3l5-5a4.5 4.5 0 0 0 5.7-6l-3 3-2.5-.5-.5-2.5z"/></symbol>
+  </defs>
+</svg>
+
+<main class="page">
+
+<header class="intro">
+  <div class="eyebrow">Отчёт и демо · два проекта Хекслета · 27.11.2026</div>
+  <h1>Хроника календаря звонков</h1>
+  <p>Что это за проект, что сделано и как. Восемнадцать схем покрывают оба репозитория: приложение «Запись на звонок» и агентный процесс вокруг него в GitHub. Все числа взяты из истории Git и GitHub Actions на 23:44 МСК 27 ноября 2026 года.</p>
+  <nav class="toc" aria-label="Разделы">
+    <a href="#p-hero">Обложка</a><a href="#p-map">Карта</a><a href="#p-timeline">Хроника</a><a href="#p-roles">Роли</a><a href="#part-1">Проект 1</a><a href="#part-2">Проект 2</a><a href="#part-3">Итоги</a><a href="#faq">Вопросы</a>
+  </nav>
+</header>
+
+<style>
+#p-hero { gap: 30px; padding-top: 40px; }
+.hero-top { display: grid; grid-template-columns: 1fr 392px; gap: 36px; align-items: start; }
+.hero-title { display: flex; flex-direction: column; gap: 18px; }
+.hero-h { font: 700 60px/1.0 var(--f-display); letter-spacing: -.035em; margin: 6px 0 0; }
+.hero-sub { font-size: 17px; line-height: 1.5; color: var(--ink-2); margin: 0; max-width: 420px; text-wrap: pretty; }
+.hero-sub b { color: var(--ink); font-weight: 600; }
+.hero-repos { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.daycard { border: 1px solid var(--line); border-radius: 18px; padding: 18px 18px 16px; display: flex; flex-direction: column; gap: 14px; background: var(--plate); }
+.dc-head { display: flex; justify-content: space-between; align-items: flex-start; }
+.dc-dow { font: 500 11.5px/1.3 var(--f-mono); letter-spacing: .09em; text-transform: uppercase; color: var(--ink-2); }
+.dc-date { font: 600 19px/1.25 var(--f-display); letter-spacing: -.01em; }
+.slots { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
+.slot { display: grid; grid-template-columns: 92px 1fr auto; gap: 10px; align-items: center; border-radius: 10px; padding: 9px 12px; font-size: 13px; line-height: 1.35; border: 1px solid var(--line-2); }
+.slot .t { font: 500 12px/1.3 var(--f-mono); color: var(--ink-2); white-space: nowrap; }
+.slot .what b { font-weight: 600; }
+.slot .st { font: 600 12px/1 var(--f-mono); color: var(--ink-2); white-space: nowrap; }
+.slot.busy { background: var(--panel); border-color: transparent; }
+.slot.busy .t { color: var(--ink); }
+.slot.goal { border-style: dashed; border-color: var(--line); padding-block: 7px; }
+.slot.goal .what { color: var(--ink-2); }
+.slot.free { border-color: transparent; background: var(--good-bg); }
+.slot.free .t, .slot.free .st { color: var(--good); }
+.slot.free .what { font-weight: 600; }
+
+.ruler svg { display: block; width: 100%; height: auto; overflow: visible; }
+.ruler text { font-family: var(--f-mono); font-size: 11.5px; fill: var(--ink-2); }
+.ruler .barlabel { font-family: var(--f-text); font-size: 13px; font-weight: 600; fill: var(--plate); }
+.ruler .cap { font-family: var(--f-text); font-size: 12.5px; fill: var(--ink-2); }
+
+.stats { display: grid; grid-template-columns: 1.25fr 1fr 1fr 1.15fr 1fr 1fr; border-top: 1px solid var(--line); }
+.stat { padding: 18px 14px 0 0; display: flex; flex-direction: column; gap: 6px; }
+.stat + .stat { padding-left: 14px; border-left: 1px solid var(--line-2); }
+.stat .num { font-size: 27px; line-height: 1.1; white-space: nowrap; }
+.stat .num small { font: 500 13px/1 var(--f-text); letter-spacing: 0; color: var(--ink-2); margin-left: 2px; }
+.stat .lbl { font-size: 12.5px; line-height: 1.38; color: var(--ink-2); }
+</style>
+<div class="plate-wrap"><section class="plate" id="p-hero" data-name="01-hero" aria-label="Календарь звонков: два учебных проекта за один вечер">
+  <div class="hero-top">
+    <div class="hero-title">
+      <div class="tag"><span>Хекслет</span><span>·</span><span>ИИ для разработчиков</span><span>·</span><b>отчёт и демо</b></div>
+      <h2 class="hero-h">Календарь<br>звонков</h2>
+      <p class="hero-sub">Сервис записи на звонок и агентный конвейер вокруг него в GitHub. Два учебных проекта прошли путь от пустого репозитория до сдачи за один вечер. <b>Человек поставил цель и ответил на 11 вопросов. Остальное сделали ИИ-агенты.</b></p>
+      <div class="hero-repos">
+        <span class="chip"><svg class="ico sm"><use href="#i-branch"/></svg>project-386 · приложение</span>
+        <span class="chip"><svg class="ico sm"><use href="#i-branch"/></svg>project-387 · приложение и агенты</span>
+      </div>
+    </div>
+    <div class="daycard" role="group" aria-label="Вечер 27 ноября 2026 как день в календаре">
+      <div class="dc-head">
+        <div><div class="dc-dow">пятница</div><div class="dc-date">27 ноября 2026</div></div>
+        <span class="chip soft">время московское</span>
+      </div>
+      <ul class="slots">
+        <li class="slot goal"><span class="t">19:38</span><span class="what">Цель: довести проект до статуса «завершён»</span><span class="role r-human">человек</span></li>
+        <li class="slot busy"><span class="t">19:38–21:11</span><span class="what"><b>Проект 1.</b> Приложение с нуля до деплоя</span><span class="st">1 ч 33 мин</span></li>
+        <li class="slot goal"><span class="t">21:14</span><span class="what">Цель: второй проект тоже</span><span class="role r-human">человек</span></li>
+        <li class="slot busy"><span class="t">21:14–23:44</span><span class="what"><b>Проект 2.</b> Агенты в GitHub Actions</span><span class="st">2 ч 30 мин</span></li>
+        <li class="slot free"><span class="t">23:44</span><span class="what">Оба проекта: автопроверка пройдена</span><span class="st">сдано</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="ruler" data-ruler="hero" role="img" aria-label="Линейка вечера: проект 1 с 19:38 до 21:11, проект 2 с 21:14 до 23:44, девять отметок участия человека"></div>
+
+  <div class="stats">
+    <div class="stat"><div class="num">4<small>ч</small> 05<small>мин</small></div><div class="lbl">от первой цели до зелёной автопроверки второго проекта</div></div>
+    <div class="stat"><div class="num">2</div><div class="lbl">репозитория: приложение и приложение с агентами</div></div>
+    <div class="stat"><div class="num">53</div><div class="lbl">коммита, 7 из них написал агент в GitHub</div></div>
+    <div class="stat"><div class="num">109<small>+ 4</small></div><div class="lbl">тестов и браузерных сценария на настоящем сервере</div></div>
+    <div class="stat"><div class="num">31</div><div class="lbl">запуск агента с моделью в GitHub Actions</div></div>
+    <div class="stat"><div class="num">11</div><div class="lbl">вопросов человеку за весь вечер</div></div>
+  </div>
+</section></div>
+
+<style>
+.repos { display: grid; grid-template-columns: 1fr 64px 1fr; align-items: stretch; }
+.repo { border: 1px solid var(--line); border-radius: 16px; padding: 20px 20px 18px; display: flex; flex-direction: column; gap: 14px; }
+.repo-name { font: 500 12px/1.3 var(--f-mono); color: var(--ink-2); display: flex; align-items: center; gap: 7px; }
+.repo h3 { font: 600 18px/1.25 var(--f-display); letter-spacing: -.01em; margin: 0; }
+.repo .mod { font-size: 13px; color: var(--ink-2); margin: -8px 0 0; }
+.steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.steps li { display: grid; grid-template-columns: 26px 1fr; gap: 10px; padding: 7px 0; border-top: 1px solid var(--line-2); align-items: start; }
+.steps .n { font: 600 12px/20px var(--f-mono); width: 22px; height: 22px; border-radius: 7px; background: var(--panel-2); text-align: center; color: var(--ink); line-height: 22px; }
+.steps .s-t { font-weight: 600; font-size: 13.5px; line-height: 1.35; }
+.steps .s-a { font-size: 12.5px; color: var(--ink-2); line-height: 1.4; }
+.repo-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--line); }
+.repo-stats div { display: flex; flex-direction: column; gap: 1px; }
+.repo-stats .num { font-size: 19px; line-height: 1.2; }
+.repo-stats span { font-size: 11.5px; color: var(--ink-2); line-height: 1.3; }
+.bridge { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--ink-2); padding-top: 60px; justify-content: flex-start; }
+.bridge svg { width: 64px; height: 24px; overflow: visible; }
+.bridge .b-l { font: 500 10.5px/1.35 var(--f-mono); text-align: center; letter-spacing: .02em; }
+.repo .extra { background: var(--panel); border-radius: 12px; padding: 12px 14px; font-size: 13px; line-height: 1.45; color: var(--ink-2); }
+.repo .extra b { color: var(--ink); font-weight: 600; }
+</style>
+<div class="plate-wrap"><section class="plate" id="p-map" data-name="02-map" aria-label="Карта: два проекта и два репозитория">
+  <header class="ph">
+    <div class="tag"><b>Карта</b><span>·</span><span>два проекта, два репозитория</span></div>
+    <h2>Репозиториев два. Во втором лежит то же приложение и агентный процесс вокруг него</h2>
+    <p class="lede">Оба проекта входят в программу Хекслета «ИИ для разработчиков». Первый учит строить приложение вместе с агентом на своей машине, второй переносит агента в GitHub: задачи, pull request, ревью и работа по расписанию.</p>
+  </header>
+
+  <div class="repos">
+    <article class="repo">
+      <div class="repo-name"><svg class="ico sm"><use href="#i-branch"/></svg>ai-for-developers-project-386</div>
+      <h3>Проект 1. Календарь звонков</h3>
+      <p class="mod">Модуль 1. Приложение с нуля до публичной ссылки</p>
+      <ol class="steps">
+        <li><span class="n">1</span><div><div class="s-t">Сценарий и требования</div><div class="s-a">роли гостя и владельца, ограничения, требования к API</div></div></li>
+        <li><span class="n">2</span><div><div class="s-t">Каркас приложения</div><div class="s-a">одна команда проверок, CI, AGENTS.md</div></div></li>
+        <li><span class="n">3</span><div><div class="s-t">Скиллы и агентная среда</div><div class="s-a">трекер, метки и документы домена в docs/agents</div></div></li>
+        <li><span class="n">4</span><div><div class="s-t">Первая фича: главная страница</div><div class="s-a">страница с тестами, словарь проекта, первые ADR</div></div></li>
+        <li><span class="n">5</span><div><div class="s-t">Проектирование бронирования</div><div class="s-a">карта из 10 решений, спецификация, 8 тикетов</div></div></li>
+        <li><span class="n">6</span><div><div class="s-t">Реализация</div><div class="s-a">контракт, сервер, интерфейс, 94 теста, PR #21</div></div></li>
+        <li><span class="n">7</span><div><div class="s-t">Docker и деплой</div><div class="s-a">образ слушает PORT, сервис опубликован на Render</div></div></li>
+      </ol>
+      <div class="extra"><b>Что получилось.</b> Владелец заводит типы встреч, гость выбирает день и свободный слот на 14 дней вперёд. Пересечения запрещены даже между разными типами встреч.</div>
+      <div class="repo-stats">
+        <div><span class="num">25</span><span>коммитов</span></div>
+        <div><span class="num">21</span><span>issue</span></div>
+        <div><span class="num">2</span><span>pull request</span></div>
+        <div><span class="num">24</span><span>прогона Actions</span></div>
+      </div>
+      <span class="chip good" style="align-self:flex-start"><svg class="ico sm"><use href="#i-check"/></svg>7 из 7 шагов · автопроверка пройдена</span>
+    </article>
+
+    <div class="bridge" aria-hidden="true">
+      <svg viewBox="0 0 64 24"><path d="M2 12h56M50 5l8 7-8 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div class="b-l">код<br>одним<br>коммитом<br>4e3e71f</div>
+    </div>
+
+    <article class="repo">
+      <div class="repo-name"><svg class="ico sm"><use href="#i-branch"/></svg>ai-for-developers-project-387</div>
+      <h3>Проект 2. Продолжение</h3>
+      <p class="mod">Модуль 2. Рабочий процесс на GitHub с агентом</p>
+      <ol class="steps">
+        <li><span class="n">1</span><div><div class="s-t">Импорт приложения</div><div class="s-a">код первого проекта перенесён и собирается в образ</div></div></li>
+        <li><span class="n">2</span><div><div class="s-t">Агент в GitHub Actions</div><div class="s-a">GitHub App OpenCode, вызов командой в комментарии</div></div></li>
+        <li><span class="n">3</span><div><div class="s-t">Issue и разбор</div><div class="s-a">обращение, вопросы агента, спецификация, тикеты, автотриаж</div></div></li>
+        <li><span class="n">4</span><div><div class="s-t">От issue к pull request и ревью</div><div class="s-a">PR #16 от агента, независимое ревью, предел запусков</div></div></li>
+        <li><span class="n">5</span><div><div class="s-t">Задачи по расписанию</div><div class="s-a">ежедневный аудит Lighthouse заводит задачи без дублей</div></div></li>
+      </ol>
+      <div class="extra"><b>Что изменилось в приложении.</b> Гость может оставить телефон, владелец видит его в списке встреч и звонит по ссылке. Эту доработку от разбора до кода сделал агент в GitHub.</div>
+      <div class="repo-stats">
+        <div><span class="num">28</span><span>коммитов</span></div>
+        <div><span class="num">15</span><span>issue</span></div>
+        <div><span class="num">11</span><span>pull request</span></div>
+        <div><span class="num">195</span><span>прогонов Actions</span></div>
+      </div>
+      <span class="chip good" style="align-self:flex-start"><svg class="ico sm"><use href="#i-check"/></svg>5 из 5 шагов · автопроверка пройдена</span>
+    </article>
+  </div>
+  <div class="foot"><span>Числа сняты на <b>23:44 МСК 27.11.2026</b>, в момент зелёной автопроверки второго проекта. Дальнейшие правки отчёта в них не входят.</span></div>
+</section></div>
+
+<style>
+.tl svg { display: block; width: 100%; height: auto; overflow: visible; }
+.tl text { font-family: var(--f-text); font-size: 12px; fill: var(--ink-2); }
+.tl .lane { font-weight: 600; fill: var(--ink); font-size: 12.5px; }
+.tl .sub { font-size: 11.5px; fill: var(--ink-2); }
+.tl .axis { font-family: var(--f-mono); font-size: 11px; }
+.tl .inbar { font-family: var(--f-mono); font-size: 11px; font-weight: 600; fill: #fff; }
+.tl .note { font-size: 11.5px; fill: var(--ink); }
+.phases { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(5, auto); grid-auto-flow: column; gap: 6px 28px; }
+.phases li { display: grid; grid-template-columns: 22px 84px 1fr; gap: 8px; font-size: 12.5px; line-height: 1.4; align-items: baseline; }
+.phases .n { font: 600 11px/18px var(--f-mono); width: 20px; height: 18px; border-radius: 5px; background: var(--claude); color: #fff; text-align: center; }
+.phases .t { font: 500 11.5px/1.4 var(--f-mono); color: var(--ink-2); white-space: nowrap; }
+</style>
+<div class="plate-wrap"><section class="plate" id="p-timeline" data-name="03-timeline" aria-label="Вечер по минутам: кто и когда работал">
+  <header class="ph">
+    <div class="tag"><b>Хроника</b><span>·</span><span>27.11.2026, 19:30–23:50 МСК, в масштабе</span></div>
+    <h2>Вечер по минутам: человек появляется девять раз, агенты работают без пауз</h2>
+    <p class="lede">Каждая полоса стоит на своём времени. Полосы OpenCode это настоящие запуски в GitHub Actions, столбики внизу показывают, сколько прогонов стартовало за каждые пять минут.</p>
+  </header>
+  <div class="tl" data-timeline role="img" aria-label="Диаграмма по времени: отметки человека, девять фаз работы Claude Code, 31 запуск OpenCode по видам, плотность прогонов GitHub Actions и две сдачи на Хекслете"></div>
+  <ol class="phases">
+    <li><span class="n">1</span><span class="t">19:38–19:57</span><span>Каркас, CI, AGENTS.md, главная страница, словарь и первые ADR</span></li>
+    <li><span class="n">2</span><span class="t">19:57–20:37</span><span>Приложение целиком: контракт, сервер, интерфейс, тесты</span></li>
+    <li><span class="n">3</span><span class="t">20:37–20:55</span><span>Карта решений, спецификация, 8 тикетов, PR #21 и код-ревью</span></li>
+    <li><span class="n">4</span><span class="t">20:56–21:11</span><span>Docker-образ и публикация на Render</span></li>
+    <li><span class="n">5</span><span class="t">21:16–21:43</span><span>Импорт кода, воркфлоу агента в GitHub, автотриаж</span></li>
+    <li><span class="n">6</span><span class="t">21:44–22:35</span><span>Независимое ревью, предел запусков, браузерная проверка</span></li>
+    <li><span class="n">7</span><span class="t">22:36–22:49</span><span>Воркфлоу ежедневного аудита</span></li>
+    <li><span class="n">8</span><span class="t">22:50–23:04</span><span>Замечания к PR агента, доказательства, решение о мерже</span></li>
+    <li><span class="n">9</span><span class="t">23:05–23:44</span><span>Результаты в README, журнал аудита, отправка на проверку</span></li>
+  </ol>
+</section></div>
+
+<style>
+.roles { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+.rolecard { border: 1px solid var(--line); border-radius: 14px; padding: 16px 14px 14px; display: flex; flex-direction: column; gap: 10px; position: relative; overflow: hidden; }
+.rolecard::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 5px; background: var(--rc); }
+.rolecard .badge { width: 38px; height: 38px; border-radius: 11px; background: color-mix(in srgb, var(--rc) 16%, var(--plate)); color: var(--rc); display: grid; place-items: center; margin-top: 4px; }
+.rolecard h3 { font: 600 15.5px/1.2 var(--f-display); letter-spacing: -.01em; margin: 0; }
+.rolecard .who { font-size: 12px; line-height: 1.35; color: var(--ink-2); margin: -6px 0 0; min-height: 32px; }
+.rolecard ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 7px; font-size: 12.5px; line-height: 1.38; }
+.rolecard li { padding-left: 12px; position: relative; }
+.rolecard li::before { content: ""; position: absolute; left: 0; top: .55em; width: 5px; height: 5px; border-radius: 50%; background: var(--rc); }
+.rolecard .big { margin-top: auto; padding-top: 10px; border-top: 1px solid var(--line-2); display: flex; align-items: baseline; gap: 7px; }
+.rolecard .big .num { font-size: 24px; line-height: 1; }
+.rolecard .big span:last-child { font-size: 11.5px; color: var(--ink-2); line-height: 1.25; }
+
+.handoff { display: grid; grid-template-columns: auto 1fr auto 1fr auto 1fr auto; align-items: center; gap: 0; background: var(--panel); border-radius: 14px; padding: 16px 18px; }
+.hf-node { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+.hf-node .role { font-size: 13px; }
+.hf-node small { font-size: 11.5px; color: var(--ink-2); line-height: 1.3; max-width: 150px; }
+.hf-edge { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 0 10px; color: var(--ink-2); }
+.hf-edge span { font: 500 11px/1.3 var(--f-mono); text-align: center; }
+.hf-edge svg { width: 100%; height: 10px; overflow: visible; }
+.honest { display: grid; grid-template-columns: 22px 1fr; gap: 10px; border: 1px dashed var(--line); border-radius: 12px; padding: 12px 14px; font-size: 13px; line-height: 1.5; color: var(--ink-2); }
+.honest b { color: var(--ink); font-weight: 600; }
+.honest .ico { color: var(--ink-2); margin-top: 1px; }
+</style>
+<div class="plate-wrap"><section class="plate" id="p-roles" data-name="04-roles" aria-label="Кто что делал: человек, Claude Code, OpenCode, GitHub Actions и Хекслет">
+  <header class="ph">
+    <div class="tag"><b>Роли</b><span>·</span><span>пять участников, цвета одинаковы на всех схемах</span></div>
+    <h2>Кто что делал: человек задаёт цель, два агента работают, автоматика проверяет</h2>
+    <p class="lede">Агентов два, и они разные. <b>Claude Code</b> работает в терминале на машине владельца и ведёт проект целиком. <b>OpenCode</b> живёт в GitHub Actions и просыпается по команде в комментарии, по событию или по расписанию.</p>
+  </header>
+
+  <div class="roles">
+    <article class="rolecard r-human">
+      <div class="badge"><svg class="ico lg"><use href="#i-user"/></svg></div>
+      <h3>Человек</h3>
+      <p class="who">владелец репозиториев и аккаунтов</p>
+      <ul>
+        <li>поставил 2 цели, каждую одной фразой</li>
+        <li>ответил на 11 вопросов в 6 заходах</li>
+        <li>ввёл 2 команды в терминале</li>
+        <li>выдал ключ модели с лимитом 20 $ и доступы</li>
+      </ul>
+      <div class="big"><span class="num">9</span><span>появлений за вечер</span></div>
+    </article>
+    <article class="rolecard r-claude">
+      <div class="badge"><svg class="ico lg"><use href="#i-terminal"/></svg></div>
+      <h3>Claude Code</h3>
+      <p class="who">агент в терминале, модель Claude Fable 5.2</p>
+      <ul>
+        <li>вёл оба проекта от цели до сдачи</li>
+        <li>написал приложение: контракт, сервер, интерфейс, тесты</li>
+        <li>собрал конвейер в GitHub: воркфлоу, права, пределы</li>
+        <li>от имени владельца отвечал агенту и мержил</li>
+      </ul>
+      <div class="big"><span class="num">40</span><span>коммитов из 53</span></div>
+    </article>
+    <article class="rolecard r-opencode">
+      <div class="badge"><svg class="ico lg"><use href="#i-bot"/></svg></div>
+      <h3>OpenCode</h3>
+      <p class="who">агент в GitHub Actions, модель deepseek-v4.1-flash</p>
+      <ul>
+        <li>разобрал обращение, написал спецификацию и 4 тикета</li>
+        <li>реализовал телефон гостя: PR #16</li>
+        <li>провёл 15 независимых ревью</li>
+        <li>5 аудитов, 5 задач по находкам</li>
+      </ul>
+      <div class="big"><span class="num">31</span><span>запуск, 7 коммитов</span></div>
+    </article>
+    <article class="rolecard r-actions">
+      <div class="badge"><svg class="ico lg"><use href="#i-play"/></svg></div>
+      <h3>GitHub Actions</h3>
+      <p class="who">обычные шаги без модели</p>
+      <ul>
+        <li>все проверки на каждый пуш и PR</li>
+        <li>браузерный сценарий на точном коммите</li>
+        <li>предел запусков агента до вызова модели</li>
+        <li>формат коммитов и release-PR</li>
+      </ul>
+      <div class="big"><span class="num">219</span><span>прогонов</span></div>
+    </article>
+    <article class="rolecard r-hexlet">
+      <div class="badge"><svg class="ico lg"><use href="#i-cap"/></svg></div>
+      <h3>Хекслет</h3>
+      <p class="who">платформа курса и экзаменатор</p>
+      <ul>
+        <li>12 шагов с заданиями в двух проектах</li>
+        <li>автопроверка собирает Dockerfile и ждёт ответ 200 на главной</li>
+        <li>дальше работу смотрит наставник</li>
+      </ul>
+      <div class="big"><span class="num">51</span><span>прогон автопроверки</span></div>
+    </article>
+  </div>
+
+  <div class="handoff" aria-label="Передача работы между участниками">
+    <div class="hf-node"><span class="role r-human">Человек</span><small>цель и ответы на вопросы</small></div>
+    <div class="hf-edge"><span>цель одной фразой</span><svg viewBox="0 0 100 10" preserveAspectRatio="none"><path d="M0 5h96" stroke="currentColor" stroke-width="1.5" fill="none" vector-effect="non-scaling-stroke"/><path d="M92 1l5 4-5 4" stroke="currentColor" stroke-width="1.5" fill="none" vector-effect="non-scaling-stroke"/></svg></div>
+    <div class="hf-node"><span class="role r-claude">Claude Code</span><small>код, issue, воркфлоу, команды агенту</small></div>
+    <div class="hf-edge"><span>пуш и команда /oc</span><svg viewBox="0 0 100 10" preserveAspectRatio="none"><path d="M0 5h96" stroke="currentColor" stroke-width="1.5" fill="none" vector-effect="non-scaling-stroke"/><path d="M92 1l5 4-5 4" stroke="currentColor" stroke-width="1.5" fill="none" vector-effect="non-scaling-stroke"/></svg></div>
+    <div class="hf-node"><span class="role r-opencode">OpenCode</span><span class="role r-actions">GitHub Actions</span><small>PR, ревью, проверки, аудит</small></div>
+    <div class="hf-edge"><span>зелёный main и образ</span><svg viewBox="0 0 100 10" preserveAspectRatio="none"><path d="M0 5h96" stroke="currentColor" stroke-width="1.5" fill="none" vector-effect="non-scaling-stroke"/><path d="M92 1l5 4-5 4" stroke="currentColor" stroke-width="1.5" fill="none" vector-effect="non-scaling-stroke"/></svg></div>
+    <div class="hf-node"><span class="role r-hexlet">Хекслет</span><small>автопроверка и статус</small></div>
+  </div>
+
+  <div class="honest">
+    <svg class="ico"><use href="#i-alert"/></svg>
+    <div><b>Кто говорит от имени владельца.</b> В issue и pull request ответы «владельца» на вопросы агента, согласование спецификации и решения о мерже написал Claude Code с аккаунта владельца и по его поручению. Сам человек в GitHub ничего не писал: его участие целиком показано розовыми отметками на хронике.</div>
+  </div>
+</section></div>
+
+<section class="part" id="part-1">
+  <div class="eyebrow">Часть 1 · репозиторий 386 · 19:38–21:11</div>
+  <h2>Проект 1. Приложение с нуля до публичной ссылки</h2>
+  <p>Сервис записи на звонок по мотивам Cal.com. Его целиком написал Claude Code на машине владельца: контракт API, сервер, интерфейс, тесты, Docker-образ и публикацию.</p>
+</section>
+
+<style>
+.browser { border: 1px solid var(--shot-ring); border-radius: 12px; overflow: hidden; background: #fff; }
+.browser .bar { display: flex; align-items: center; gap: 10px; padding: 7px 12px; background: var(--panel); border-bottom: 1px solid var(--line-2); }
+.browser .dots { display: flex; gap: 5px; }
+.browser .dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
+.browser .url { font: 500 11px/1.4 var(--f-mono); color: var(--ink-2); background: var(--plate); border-radius: 6px; padding: 2px 9px; }
+/* Кадр показывает область скриншота 1180×760: --x, --y задают угол, --w, --h размер области. */
+.shot { position: relative; overflow: hidden; background: #fff; aspect-ratio: var(--w) / var(--h); }
+.shot img { position: absolute; max-width: none; width: calc(1180 / var(--w) * 100%); left: calc(var(--x) / var(--w) * -100%); top: calc(var(--y) / var(--h) * -100%); }
+.pin { position: absolute; width: 24px; height: 24px; border-radius: 50%; background: #1f2328; color: #fff; font: 600 12px/24px var(--f-mono); text-align: center; box-shadow: 0 0 0 3px rgba(255,255,255,.9); }
+.demo-notes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.demo-notes div { display: grid; grid-template-columns: 24px 1fr; gap: 10px; font-size: 13px; line-height: 1.45; color: var(--ink-2); }
+.demo-notes b { color: var(--ink); font-weight: 600; }
+.nn { width: 22px; height: 22px; border-radius: 50%; background: var(--ink); color: var(--plate); font: 600 11.5px/22px var(--f-mono); text-align: center; flex: none; }
+.closeups { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px 18px; }
+.closeups figure { margin: 0; display: flex; flex-direction: column; gap: 9px; }
+.closeups .shot { border: 1px solid var(--shot-ring); border-radius: 12px; }
+.closeups figcaption { display: grid; grid-template-columns: 22px 1fr; gap: 9px; font-size: 12.5px; line-height: 1.42; color: var(--ink-2); }
+.closeups figcaption b { color: var(--ink); font-weight: 600; display: block; font-size: 13px; }
+.subhead { font: 600 12px/1.3 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); margin: 4px 0 -10px; }
+</style>
+<div class="plate-wrap"><section class="plate" id="p-demo" data-name="05-demo" aria-label="Демо: настоящие экраны приложения">
+  <header class="ph">
+    <div class="tag"><b>Демо</b><span>·</span><span>настоящие экраны, сняты с запущенного приложения</span></div>
+    <h2>Что умеет приложение: гость бронирует слот, владелец видит встречу</h2>
+    <p class="lede">Ролей две. <b>Владелец</b> один и задан заранее: он создаёт типы встреч и смотрит список записей. <b>Гость</b> приходит без регистрации, выбирает тип встречи, день и свободное время.</p>
+  </header>
+
+  <div class="browser">
+    <div class="bar"><span class="dots"><i></i><i></i><i></i></span><span class="url">/book/meeting-30</span></div>
+    <div class="shot" style="--x:0;--y:92;--w:1180;--h:606">
+      <img src="shots/slot.png" alt="Страница записи: слева выбранный тип встречи, в центре календарь на 14 дней, справа слоты выбранного дня с отметками «Свободно» и «Занято»">
+      <span class="pin" style="left:1.6%;top:16.3%">1</span>
+      <span class="pin" style="left:33.4%;top:16.3%">2</span>
+      <span class="pin" style="left:65.2%;top:16.3%">3</span>
+    </div>
+  </div>
+  <div class="demo-notes">
+    <div><span class="nn">1</span><span><b>Тип встречи.</b> Название, описание и длительность. Слот длится столько же, сколько встреча.</span></div>
+    <div><span class="nn">2</span><span><b>Окно записи.</b> 14 дней начиная с сегодня. На каждом дне видно число свободных слотов.</span></div>
+    <div><span class="nn">3</span><span><b>Слоты дня.</b> Занятое время закрыто для выбора, выбранное подсвечено.</span></div>
+  </div>
+
+  <div class="subhead">Путь гостя и владельца</div>
+  <div class="closeups">
+    <figure>
+      <div class="shot" style="--x:770;--y:196;--w:400;--h:400"><img src="shots/form.png" alt="Форма гостя: имя, email, необязательный телефон и заметка"></div>
+      <figcaption><span class="nn">4</span><span><b>Гость оставляет контакты</b>Имя и email обязательны, телефон и заметка по желанию.</span></figcaption>
+    </figure>
+    <figure>
+      <div class="shot" style="--x:326;--y:108;--w:400;--h:400"><img src="shots/confirmed.png" alt="Экран «Вы записаны» с датой, временем, email и телефоном гостя"></div>
+      <figcaption><span class="nn">5</span><span><b>Видит подтверждение</b>Дата и время по Москве, свои контакты и заметка.</span></figcaption>
+    </figure>
+    <figure>
+      <div class="shot" style="--x:18;--y:312;--w:400;--h:400"><img src="shots/admin.png" alt="Админка владельца: предстоящие встречи по дням, у записи имя, email и телефон ссылкой"></div>
+      <figcaption><span class="nn">6</span><span><b>Владелец видит встречу</b>Все типы встреч в одном списке по дням. Телефон это ссылка для звонка.</span></figcaption>
+    </figure>
+  </div>
+
+  <div class="subhead">Правила в действии</div>
+  <div class="closeups">
+    <figure>
+      <div class="shot" style="--x:770;--y:196;--w:400;--h:400"><img src="shots/other-type.png" alt="Слоты пятнадцатиминутной встречи: время, занятое получасовыми встречами, закрыто"></div>
+      <figcaption><span class="nn">7</span><span><b>Занято для всех типов</b>Получасовые записи закрывают и слоты пятнадцатиминутной встречи.</span></figcaption>
+    </figure>
+    <figure>
+      <div class="shot" style="--x:770;--y:336;--w:400;--h:400"><img src="shots/phone-error.png" alt="Ошибка у поля «Телефон»: номер без цифр отклонён сервером"></div>
+      <figcaption><span class="nn">8</span><span><b>Сервер проверяет телефон</b>Номер без цифр отклонён с кодом 422, слот остался свободным.</span></figcaption>
+    </figure>
+    <figure>
+      <div class="shot" style="--x:18;--y:112;--w:400;--h:400"><img src="shots/conflict.png" alt="Сообщение «Это время уже занято» над календарём"></div>
+      <figcaption><span class="nn">9</span><span><b>Слот заняли раньше</b>Пока гость заполнял форму, время забронировал другой. Ответ 409 и понятное сообщение.</span></figcaption>
+    </figure>
+  </div>
+</section></div>
+
+<style>
+.sg { display: grid; grid-template-columns: 158px 1fr; gap: 9px 14px; align-items: center; padding-right: 20px; }
+.sg .ln { font-size: 13px; font-weight: 600; line-height: 1.25; }
+.sg .ln small { display: block; font: 400 11.5px/1.3 var(--f-text); color: var(--ink-2); }
+.g36 { display: grid; grid-template-columns: repeat(36, 1fr); gap: 0; position: relative; }
+.g36.axis { font: 500 11px/1 var(--f-mono); color: var(--ink-2); }
+.g36.axis span { transform: translateX(-50%); white-space: nowrap; }
+.g36.axis::after { content: "18:00"; position: absolute; right: 0; transform: translateX(50%); }
+.g36 .cell { height: 26px; border: 1px solid var(--line); border-radius: 5px; margin: 0 1.5px; background: var(--plate); }
+.g36 .cell.busy { border-color: transparent; background: repeating-linear-gradient(135deg, var(--panel-2) 0 5px, var(--line) 5px 6.5px); }
+.g36 .bk { height: 30px; border-radius: 7px; background: var(--ink); color: var(--plate); font: 600 11px/30px var(--f-mono); text-align: center; margin: 0 1.5px; white-space: nowrap; overflow: visible; position: relative; }
+.g36 .bk b { position: absolute; left: 50%; transform: translateX(-50%); top: -19px; color: var(--ink); font: 600 11.5px/1.2 var(--f-text); white-space: nowrap; }
+.sg-notes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 26px; margin-left: 172px; }
+.sg-notes div { font-size: 12.5px; line-height: 1.45; color: var(--ink-2); padding-left: 12px; border-left: 2px solid var(--line); }
+.sg-notes b { color: var(--ink); font-weight: 600; }
+.sg-legend { display: flex; gap: 18px; font-size: 12px; color: var(--ink-2); align-items: center; margin-left: 172px; }
+.sg-legend span { display: inline-flex; align-items: center; gap: 7px; }
+.sg-legend i { width: 22px; height: 14px; border-radius: 4px; border: 1px solid var(--line); display: inline-block; }
+.sg-legend i.b { border-color: transparent; background: repeating-linear-gradient(135deg, var(--panel-2) 0 5px, var(--line) 5px 6.5px); }
+.sg-legend i.k { border-color: transparent; background: var(--ink); }
+.rule3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.rule3 .card { gap: 10px; }
+.rule3 h3 { display: flex; align-items: center; gap: 8px; }
+.days14 { display: grid; grid-template-columns: repeat(14, 1fr); gap: 3px; }
+.days14 .d { height: 22px; border-radius: 4px; border: 1px solid var(--line); background: var(--plate); }
+.days14 .today { background: var(--ink); border-color: var(--ink); }
+.d14-cap { display: flex; justify-content: space-between; font: 500 10.5px/1 var(--f-mono); color: var(--ink-2); margin-top: -4px; }
+.race { display: grid; grid-template-columns: auto 1fr auto; gap: 6px 8px; align-items: center; font: 500 11.5px/1.3 var(--f-mono); }
+.race .srv { grid-row: 1 / span 2; grid-column: 2; align-self: stretch; border: 1px solid var(--line); border-radius: 9px; background: var(--plate); display: grid; place-items: center; text-align: center; font: 600 11.5px/1.35 var(--f-text); padding: 6px; margin: 0 6px; position: relative; }
+.race .srv::before, .race .srv::after { content: ""; position: absolute; top: 50%; width: 8px; border-top: 1.5px solid var(--ink-3); }
+.race .srv::before { left: -9px; } .race .srv::after { right: -9px; }
+.race .g { background: var(--plate); border: 1px solid var(--line); border-radius: 7px; padding: 5px 8px; white-space: nowrap; }
+.tel { display: flex; flex-direction: column; gap: 6px; font: 500 12px/1.3 var(--f-mono); }
+.tel .v { background: var(--plate); border: 1px solid var(--line); border-radius: 7px; padding: 6px 9px; }
+.tel .to { color: var(--ink-2); font: 400 11.5px/1.2 var(--f-text); padding-left: 2px; }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.chips .chip { font-size: 11px; padding: 4px 8px; }
+</style>
+<div class="plate-wrap"><section class="plate" id="p-rules" data-name="06-rules" aria-label="Правила записи: сетка слотов, пересечения, окно записи, одновременные запросы и телефон">
+  <header class="ph">
+    <div class="tag"><b>Правила</b><span>·</span><span>их проверяет сервер, интерфейс только показывает</span></div>
+    <h2>Одно занятое время закрывает слоты всех типов встреч</h2>
+    <p class="lede">День владельца длится с 09:00 до 18:00 по Москве. Шаг слотов равен длительности типа встречи. Две записи не могут пересекаться даже частично, но могут идти вплотную.</p>
+  </header>
+
+  <div class="stack" style="gap:14px">
+    <div class="sg">
+      <div></div><div class="g36 axis"><span style="grid-column:1">09:00</span><span style="grid-column:5">10:00</span><span style="grid-column:9">11:00</span><span style="grid-column:13">12:00</span><span style="grid-column:17">13:00</span><span style="grid-column:21">14:00</span><span style="grid-column:25">15:00</span><span style="grid-column:29">16:00</span><span style="grid-column:33">17:00</span></div>
+      <div class="ln" style="align-self:end">Записи<small>что уже занято</small></div>
+      <div class="g36" style="margin-top:22px"><div class="bk" style="grid-column:5/span 2"><b>Анна, 10:00–10:30</b></div><div class="bk" style="grid-column:21/span 4"><b>Глеб, 14:00–15:00</b></div></div>
+      <div class="ln">Встреча 15 минут<small>36 слотов в день</small></div><div class="g36"><i class="cell" style="grid-column:1/span 1"></i><i class="cell" style="grid-column:2/span 1"></i><i class="cell" style="grid-column:3/span 1"></i><i class="cell" style="grid-column:4/span 1"></i><i class="cell busy" style="grid-column:5/span 1"></i><i class="cell busy" style="grid-column:6/span 1"></i><i class="cell" style="grid-column:7/span 1"></i><i class="cell" style="grid-column:8/span 1"></i><i class="cell" style="grid-column:9/span 1"></i><i class="cell" style="grid-column:10/span 1"></i><i class="cell" style="grid-column:11/span 1"></i><i class="cell" style="grid-column:12/span 1"></i><i class="cell" style="grid-column:13/span 1"></i><i class="cell" style="grid-column:14/span 1"></i><i class="cell" style="grid-column:15/span 1"></i><i class="cell" style="grid-column:16/span 1"></i><i class="cell" style="grid-column:17/span 1"></i><i class="cell" style="grid-column:18/span 1"></i><i class="cell" style="grid-column:19/span 1"></i><i class="cell" style="grid-column:20/span 1"></i><i class="cell busy" style="grid-column:21/span 1"></i><i class="cell busy" style="grid-column:22/span 1"></i><i class="cell busy" style="grid-column:23/span 1"></i><i class="cell busy" style="grid-column:24/span 1"></i><i class="cell" style="grid-column:25/span 1"></i><i class="cell" style="grid-column:26/span 1"></i><i class="cell" style="grid-column:27/span 1"></i><i class="cell" style="grid-column:28/span 1"></i><i class="cell" style="grid-column:29/span 1"></i><i class="cell" style="grid-column:30/span 1"></i><i class="cell" style="grid-column:31/span 1"></i><i class="cell" style="grid-column:32/span 1"></i><i class="cell" style="grid-column:33/span 1"></i><i class="cell" style="grid-column:34/span 1"></i><i class="cell" style="grid-column:35/span 1"></i><i class="cell" style="grid-column:36/span 1"></i></div>
+      <div class="ln">Встреча 30 минут<small>18 слотов в день</small></div><div class="g36"><i class="cell" style="grid-column:1/span 2"></i><i class="cell" style="grid-column:3/span 2"></i><i class="cell busy" style="grid-column:5/span 2"></i><i class="cell" style="grid-column:7/span 2"></i><i class="cell" style="grid-column:9/span 2"></i><i class="cell" style="grid-column:11/span 2"></i><i class="cell" style="grid-column:13/span 2"></i><i class="cell" style="grid-column:15/span 2"></i><i class="cell" style="grid-column:17/span 2"></i><i class="cell" style="grid-column:19/span 2"></i><i class="cell busy" style="grid-column:21/span 2"></i><i class="cell busy" style="grid-column:23/span 2"></i><i class="cell" style="grid-column:25/span 2"></i><i class="cell" style="grid-column:27/span 2"></i><i class="cell" style="grid-column:29/span 2"></i><i class="cell" style="grid-column:31/span 2"></i><i class="cell" style="grid-column:33/span 2"></i><i class="cell" style="grid-column:35/span 2"></i></div>
+      <div class="ln">Консультация 60 минут<small>9 слотов в день</small></div><div class="g36"><i class="cell" style="grid-column:1/span 4"></i><i class="cell busy" style="grid-column:5/span 4"></i><i class="cell" style="grid-column:9/span 4"></i><i class="cell" style="grid-column:13/span 4"></i><i class="cell" style="grid-column:17/span 4"></i><i class="cell busy" style="grid-column:21/span 4"></i><i class="cell" style="grid-column:25/span 4"></i><i class="cell" style="grid-column:29/span 4"></i><i class="cell" style="grid-column:33/span 4"></i></div>
+    </div>
+    <div class="sg-legend"><span><i></i>слот свободен</span><span><i class="b"></i>слот занят</span><span><i class="k"></i>запись гостя</span></div>
+    <div class="sg-notes">
+      <div><b>Частичное наложение запрещено.</b> Получасовая запись Анны закрывает часовой слот 10:00–11:00 целиком: он пересекается с ней на 30 минут.</div>
+      <div><b>Вплотную можно.</b> Слот 10:30–11:00 свободен: встреча может начаться в момент окончания предыдущей. Интервал считается как [начало, конец).</div>
+    </div>
+  </div>
+
+  <div class="rule3">
+    <div class="card">
+      <h3><svg class="ico"><use href="#i-calendar"/></svg>Окно записи</h3>
+      <div class="days14"><i class="d today"></i><i class="d"></i><i class="d"></i><i class="d"></i><i class="d"></i><i class="d"></i><i class="d"></i><i class="d"></i><i class="d"></i><i class="d"></i><i class="d"></i><i class="d"></i><i class="d"></i><i class="d"></i></div>
+      <div class="d14-cap"><span>сегодня</span><span>+13 дней</span></div>
+      <p>14 календарных дней, окно сдвигается каждый день. Слот, который уже начался, недоступен. Рабочие часы и пояс заданы в коде сервера.</p>
+    </div>
+    <div class="card">
+      <h3><svg class="ico"><use href="#i-repeat"/></svg>Два запроса сразу</h3>
+      <div class="race">
+        <span class="g">гость А</span><span class="srv">сервер<br>проверка и запись<br>одним шагом</span><span class="chip good"><svg class="ico sm"><use href="#i-check"/></svg>201</span>
+        <span class="g">гость Б</span><span class="chip bad"><svg class="ico sm"><use href="#i-x"/></svg>409</span>
+      </div>
+      <p>Из одновременных запросов на пересекающееся время проходит ровно один. Второй получает <span class="mono">409 slot_taken</span> и сообщение «Это время уже занято».</p>
+    </div>
+    <div class="card">
+      <h3><svg class="ico"><use href="#i-phone"/></svg>Телефон гостя</h3>
+      <div class="tel"><span class="v">+7 (999) 123-45-67</span><span class="to">хранится как ввёл гость, в ссылке остаются цифры и плюс</span><span class="v">tel:+79991234567</span></div>
+      <div class="chips"><span class="chip">необязателен</span><span class="chip">5–30 символов</span><span class="chip">цифры + ( ) - пробел</span><span class="chip">хотя бы одна цифра</span></div>
+    </div>
+  </div>
+</section></div>
+
+<style>
+.arch { position: relative; height: 560px; }
+.arch > svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; color: var(--ink-3); }
+.node { position: absolute; border: 1px solid var(--line); border-radius: 13px; background: var(--plate); padding: 12px 14px; display: flex; flex-direction: column; gap: 3px; justify-content: center; }
+.node .nt { font: 600 13px/1.3 var(--f-mono); display: flex; align-items: center; gap: 8px; }
+.node .ns { font-size: 12.5px; line-height: 1.38; color: var(--ink-2); }
+.node .ns b { color: var(--ink); font-weight: 600; }
+.node.src { background: var(--ink); border-color: var(--ink); color: var(--plate); }
+.node.src .ns { color: color-mix(in srgb, var(--plate) 72%, var(--ink)); }
+.node.src .ns b { color: var(--plate); }
+.node.gen { border-style: dashed; }
+.node.run { background: var(--panel); border-color: transparent; }
+.guard { position: absolute; display: grid; grid-template-columns: 20px 1fr; gap: 8px; font-size: 12px; line-height: 1.4; color: var(--ink-2); }
+.guard .ico { color: var(--good); }
+.guard b { color: var(--ink); font-weight: 600; }
+.elabel { position: absolute; font: 500 11px/1.3 var(--f-mono); color: var(--ink-2); background: var(--plate); padding: 2px 6px; border-radius: 5px; white-space: nowrap; transform: translate(-50%, -50%); }
+.loc { display: grid; grid-template-columns: 220px 1fr 64px; gap: 7px 12px; align-items: center; font-size: 13px; }
+.loc .bar { height: 14px; border-radius: 0 4px 4px 0; background: var(--ink); }
+.loc .bar.g { background: repeating-linear-gradient(135deg, var(--panel-2) 0 5px, var(--line) 5px 6.5px); }
+.loc .v { font: 600 12.5px/1 var(--f-mono); text-align: right; font-variant-numeric: tabular-nums; }
+.loc small { color: var(--ink-2); font-size: 11.5px; }
+.loc-head { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
+.loc-head h3 { font: 600 15px/1.3 var(--f-text); margin: 0; }
+.stackchips { display: flex; flex-wrap: wrap; gap: 6px; }
+</style>
+<div class="plate-wrap"><section class="plate" id="p-arch" data-name="07-architecture" aria-label="Архитектура: контракт API порождает клиентский SDK и серверные типы">
+  <header class="ph">
+    <div class="tag"><b>Архитектура</b><span>·</span><span>контракт первым</span></div>
+    <h2>248 строк контракта задают API, клиент и сервер одновременно</h2>
+    <p class="lede">API описано один раз в TypeSpec. Из него одной командой получаются OpenAPI, клиентский SDK и типы серверных обработчиков, поэтому фронтенд и бекенд не могут разойтись молча.</p>
+  </header>
+
+  <div class="arch">
+    <svg viewBox="0 0 840 560" aria-hidden="true">
+      <defs><marker id="ah" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L8.5 5 1 8.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+      <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M232 60H374" marker-end="url(#ah)"/>
+        <path d="M505 98V124H185V150" marker-end="url(#ah)"/>
+        <path d="M505 124H535V150" marker-end="url(#ah)"/>
+        <path d="M185 232V262" marker-end="url(#ah)"/>
+        <path d="M535 232V262" marker-end="url(#ah)"/>
+        <path d="M185 358V398" marker-end="url(#ah)"/>
+        <path d="M535 358V398" marker-end="url(#ah)"/>
+        <path d="M240 474V502" marker-end="url(#ah)"/>
+        <path d="M342 531H386" marker-end="url(#ah)"/>
+      </g>
+    </svg>
+
+    <div class="node src" style="left:0;top:4px;width:230px;height:112px">
+      <div class="nt"><svg class="ico sm"><use href="#i-doc"/></svg>api/main.tsp</div>
+      <div class="ns">Контракт на TypeSpec. <b>Единственный источник правды</b> об API: 8 операций, сущности, коды ошибок.</div>
+    </div>
+    <span class="elabel" style="left:303px;top:40px">mise run generate</span>
+    <div class="node gen" style="left:380px;top:4px;width:250px;height:94px">
+      <div class="nt"><svg class="ico sm"><use href="#i-code"/></svg>openapi.yaml</div>
+      <div class="ns">OpenAPI 3.1. Лежит в репозитории, руками не правится.</div>
+    </div>
+    <div class="guard" style="left:652px;top:10px;width:188px">
+      <svg class="ico"><use href="#i-shield"/></svg>
+      <span><b>CI повторяет генерацию</b> и падает, если результат отличается от закоммиченного.</span>
+    </div>
+
+    <div class="node gen" style="left:60px;top:154px;width:250px;height:78px">
+      <div class="nt"><svg class="ico sm"><use href="#i-code"/></svg>web/src/api/generated</div>
+      <div class="ns">Типизированный SDK клиента: функция на каждую операцию.</div>
+    </div>
+    <div class="node gen" style="left:410px;top:154px;width:250px;height:78px">
+      <div class="nt"><svg class="ico sm"><use href="#i-code"/></svg>server/generated</div>
+      <div class="ns">Типы обработчиков Fastify для каждой операции.</div>
+    </div>
+
+    <div class="node" style="left:60px;top:266px;width:250px;height:92px">
+      <div class="nt"><svg class="ico sm"><use href="#i-layers"/></svg>Интерфейс</div>
+      <div class="ns">React 19, Vite 8, Mantine 9. Ходит в API <b>только через SDK</b>: прямой <span class="mono">fetch</span> запрещён линтером.</div>
+    </div>
+    <div class="node" style="left:410px;top:266px;width:250px;height:92px">
+      <div class="nt"><svg class="ico sm"><use href="#i-wrench"/></svg>Сервер</div>
+      <div class="ns">Fastify 5. Маршруты и проверка запросов <b>строятся из OpenAPI</b>, правила записи в двух модулях.</div>
+    </div>
+    <div class="guard" style="left:680px;top:276px;width:160px">
+      <svg class="ico"><use href="#i-shield"/></svg>
+      <span><b>Тесты</b> сверяют каждый ответ с контрактом.</span>
+    </div>
+
+    <div class="node run" style="left:60px;top:402px;width:600px;height:72px">
+      <div class="nt"><svg class="ico sm"><use href="#i-play"/></svg>Один процесс Node.js 26</div>
+      <div class="ns">Отдаёт API под <span class="mono">/api</span> и собранный фронтенд. TypeScript исполняется без сборки, записи живут в памяти процесса.</div>
+    </div>
+
+    <div class="node" style="left:140px;top:506px;width:200px;height:50px;padding-block:8px">
+      <div class="nt"><svg class="ico sm"><use href="#i-box"/></svg>Docker-образ</div>
+      <div class="ns">слушает порт из <span class="mono">PORT</span></div>
+    </div>
+    <div class="node" style="left:390px;top:506px;width:270px;height:50px;padding-block:8px">
+      <div class="nt"><svg class="ico sm"><use href="#i-cloud"/></svg>Render, публичная ссылка</div>
+      <div class="ns">проверка состояния по <span class="mono">/api/health</span></div>
+    </div>
+  </div>
+
+  <div class="stack" style="gap:12px">
+    <div class="loc-head"><h3>Сколько строк в репозитории и кто их пишет</h3><div class="sg-legend" style="margin:0"><span><i class="k"></i>пишется руками</span><span><i class="b"></i>генерируется</span></div></div>
+    <div class="loc">
+      <span>Контракт <small>api/main.tsp</small></span><span><i class="bar" style="display:block;width:7.6%"></i></span><span class="v">248</span>
+      <span>Сервер <small>server/</small></span><span><i class="bar" style="display:block;width:16.2%"></i></span><span class="v">530</span>
+      <span>Интерфейс <small>web/src/</small></span><span><i class="bar" style="display:block;width:48.2%"></i></span><span class="v">1 578</span>
+      <span>Тесты <small>API, интерфейс, браузер</small></span><span><i class="bar" style="display:block;width:46.6%"></i></span><span class="v">1 524</span>
+      <span>Сгенерированный код <small>21 файл</small></span><span><i class="bar g" style="display:block;width:100%"></i></span><span class="v">3 272</span>
+    </div>
+  </div>
+
+  <div class="stackchips">
+    <span class="chip soft">TypeScript 6</span><span class="chip soft">Node.js 26</span><span class="chip soft">TypeSpec 1.18</span><span class="chip soft">openapi-ts 0.99</span><span class="chip soft">Fastify 5</span><span class="chip soft">React 19</span><span class="chip soft">Vite 8</span><span class="chip soft">Mantine 9</span><span class="chip soft">Vitest 5</span><span class="chip soft">Playwright</span><span class="chip soft">Oxlint и oxfmt</span><span class="chip soft">mise</span><span class="chip soft">hk</span><span class="chip soft">release-please</span><span class="chip soft">Docker</span>
+  </div>
+</section></div>
+
+<style>
+.funnel { display: grid; grid-template-columns: 1fr 18px 1.25fr 18px 1fr 18px 1fr 18px 1.1fr; align-items: stretch; }
+.fstep { border: 1px solid var(--line); border-radius: 12px; padding: 12px 13px; display: flex; flex-direction: column; gap: 4px; }
+.fstep .fk { font: 600 11px/1.2 var(--f-mono); color: var(--ink-2); letter-spacing: .04em; }
+.fstep .ft { font: 600 14px/1.25 var(--f-text); }
+.fstep .fs { font-size: 12px; line-height: 1.35; color: var(--ink-2); }
+.fstep.end { background: var(--ink); border-color: var(--ink); color: var(--plate); }
+.fstep.end .fk, .fstep.end .fs { color: color-mix(in srgb, var(--plate) 72%, var(--ink)); }
+.farrow { display: grid; place-items: center; color: var(--ink-3); }
+.farrow .ico { width: 16px; height: 16px; }
+.decs { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; }
+.dec { display: grid; grid-template-columns: 44px 1fr; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line-2); align-items: start; }
+.dec .dn { font: 600 12px/22px var(--f-mono); background: var(--panel-2); border-radius: 7px; text-align: center; height: 22px; }
+.dec b { display: block; font-weight: 600; font-size: 13.5px; line-height: 1.3; }
+.dec span { font-size: 12.5px; line-height: 1.42; color: var(--ink-2); }
+.kept { display: grid; grid-template-columns: 1.15fr 1fr; gap: 14px; }
+.kept .card { gap: 9px; }
+.adr { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; line-height: 1.4; }
+.adr li { display: grid; grid-template-columns: 36px 1fr; gap: 8px; }
+.adr li i { font: 500 11px/1.6 var(--f-mono); color: var(--ink-2); font-style: normal; }
+</style>
+<div class="plate-wrap"><section class="plate" id="p-decisions" data-name="08-decisions" aria-label="Проектирование: десять решений, спецификация и восемь тикетов">
+  <header class="ph">
+    <div class="tag"><b>Проектирование</b><span>·</span><span>проект 1, трекер репозитория 386</span></div>
+    <h2>Десять спорных вопросов закрыты до первого тикета</h2>
+    <p class="lede">Каждое неочевидное место стало отдельным вопросом в GitHub Issues. Ответы собраны в спецификацию, спецификация разрезана на тикеты, которые проверяются по отдельности. Труднообратимые решения записаны как ADR.</p>
+  </header>
+
+  <div class="funnel">
+    <div class="fstep"><span class="fk">#1</span><span class="ft">Карта решений</span><span class="fs">цель и список вопросов</span></div>
+    <div class="farrow"><svg class="ico"><use href="#i-arrow"/></svg></div>
+    <div class="fstep"><span class="fk">#2–#11</span><span class="ft">10 вопросов</span><span class="fs">1 исследование на прототипе и 9 решений</span></div>
+    <div class="farrow"><svg class="ico"><use href="#i-arrow"/></svg></div>
+    <div class="fstep"><span class="fk">#12</span><span class="ft">Спецификация</span><span class="fs">поведение без открытых вопросов</span></div>
+    <div class="farrow"><svg class="ico"><use href="#i-arrow"/></svg></div>
+    <div class="fstep"><span class="fk">#13–#20</span><span class="ft">8 тикетов</span><span class="fs">вертикальные, с зависимостями</span></div>
+    <div class="farrow"><svg class="ico"><use href="#i-arrow"/></svg></div>
+    <div class="fstep end"><span class="fk">PR #21</span><span class="ft">Реализация</span><span class="fs">коммит на каждый тикет, затем код-ревью</span></div>
+  </div>
+
+  <div class="decs">
+    <div class="dec"><span class="dn">#2</span><div><b>Как связать контракт и код</b><span>TypeSpec → OpenAPI 3.1 → SDK клиента и типы Fastify. Результат генерации лежит в репозитории.</span></div></div>
+    <div class="dec"><span class="dn">#7</span><div><b>Где хранить данные</b><span>В памяти одного процесса. Проверка занятости и запись выполняются одним синхронным шагом.</span></div></div>
+    <div class="dec"><span class="dn">#3</span><div><b>Какие сущности в контракте</b><span>Тип встречи, слот, окно записи, запись. Типы и записи не редактируются.</span></div></div>
+    <div class="dec"><span class="dn">#8</span><div><b>Какие операции у API</b><span>Все адреса под <span class="mono">/api</span>. Ошибки в одном формате: 404, 409 и 422 с перечнем полей.</span></div></div>
+    <div class="dec"><span class="dn">#4</span><div><b>Как устроено окно записи</b><span>14 дней начиная с сегодня, 09:00–18:00 каждый день, пояс Europe/Moscow.</span></div></div>
+    <div class="dec"><span class="dn">#9</span><div><b>Какие страницы нужны</b><span>Главная, выбор типа встречи, календарь со слотами, две страницы админки без входа.</span></div></div>
+    <div class="dec"><span class="dn">#5</span><div><b>Какой шаг у слотов</b><span>Равен длительности типа встречи. Общий шаг в 15 минут отвергнут: дробит день владельца.</span></div></div>
+    <div class="dec"><span class="dn">#10</span><div><b>На каких границах тестировать</b><span>Два шва: HTTP API запущенного сервера и браузер с настоящим сервером.</span></div></div>
+    <div class="dec"><span class="dn">#6</span><div><b>Что считать конфликтом</b><span>Любое пересечение интервалов [начало, конец) независимо от типа. Вплотную можно.</span></div></div>
+    <div class="dec"><span class="dn">#11</span><div><b>Как выпускать релизы</b><span>release-please готовит release-PR по Conventional Commits, коммиты ссылаются на тикеты.</span></div></div>
+  </div>
+
+  <div class="kept">
+    <div class="card">
+      <h3>7 записанных решений, docs/adr</h3>
+      <ol class="adr">
+        <li><i>0001</i><span>Один процесс отдаёт API и фронтенд</span></li>
+        <li><i>0002</i><span>Сервер запускается без сборки TypeScript</span></li>
+        <li><i>0003</i><span>Главная страница проверяется компонентными тестами</span></li>
+        <li><i>0004</i><span>Расписание владельца задано в коде по московскому времени</span></li>
+        <li><i>0005</i><span>Шаг слотов равен длительности типа встречи</span></li>
+        <li><i>0006</i><span>Записи хранятся в памяти процесса</span></li>
+        <li><i>0007</i><span>Контракт в TypeSpec, сгенерированный код в репозитории</span></li>
+      </ol>
+    </div>
+    <div class="card">
+      <h3>Словарь проекта, GLOSSARY.md</h3>
+      <p>Одни и те же слова в коде, тикетах и ответах агентов.</p>
+      <div class="chips"><span class="chip">владелец</span><span class="chip">гость</span><span class="chip">тип встречи</span><span class="chip">слот</span><span class="chip">запись</span><span class="chip">окно записи</span><span class="chip">конфликт</span><span class="chip">предстоящая встреча</span><span class="chip">рабочие часы</span><span class="chip">расписание владельца</span><span class="chip">страница записи</span><span class="chip">админка</span><span class="chip">телефон гостя</span></div>
+    </div>
+  </div>
+
+  <div class="honest">
+    <svg class="ico"><use href="#i-alert"/></svg>
+    <div><b>Порядок был не учебным.</b> К 20:33 приложение уже работало локально: у агента не было доступа к GitHub, пока владелец не разрешил вход. Карта, спецификация и тикеты появились в трекере за следующие восемь минут и записывают решения, уже проверенные кодом. Коммиты разложены по тикетам после.</div>
+  </div>
+</section></div>
+
+<style>
+.cmd { display: flex; align-items: center; gap: 12px; background: var(--ink); color: var(--plate); border-radius: 12px; padding: 12px 16px; font: 600 15px/1.3 var(--f-mono); }
+.cmd .ico { color: var(--plate); }
+.cmd small { font: 400 12.5px/1.4 var(--f-text); color: color-mix(in srgb, var(--plate) 72%, var(--ink)); margin-left: auto; }
+.pipe { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; counter-reset: st; }
+.stage { border: 1px solid var(--line); border-radius: 12px; padding: 12px 12px 13px; display: flex; flex-direction: column; gap: 5px; position: relative; }
+.stage .si { display: flex; align-items: center; justify-content: space-between; color: var(--ink-2); }
+.stage .si .chip { padding: 3px 7px; font-size: 10.5px; }
+.stage b { font: 600 14px/1.25 var(--f-text); }
+.stage span { font-size: 12px; line-height: 1.38; color: var(--ink-2); }
+.seams { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.seam { border: 1px solid var(--line); border-radius: 14px; padding: 16px 16px 14px; display: flex; flex-direction: column; gap: 11px; }
+.seam h3 { font: 600 15px/1.3 var(--f-text); margin: 0; }
+.seam .path { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font: 500 11.5px/1.3 var(--f-mono); }
+.seam .path span { background: var(--panel); border-radius: 7px; padding: 5px 8px; white-space: nowrap; }
+.seam .path .ico { width: 13px; height: 13px; color: var(--ink-3); }
+.seam p { margin: 0; font-size: 12.5px; line-height: 1.45; color: var(--ink-2); }
+.seam p b { color: var(--ink); font-weight: 600; }
+.tests { display: grid; grid-template-columns: 96px 1fr 44px; gap: 8px 12px; align-items: center; font-size: 13px; }
+.tbar { display: flex; gap: 2px; height: 26px; }
+.tbar i { display: grid; place-items: center; font: 600 11.5px/1 var(--f-mono); font-style: normal; border-radius: 3px; min-width: 0; }
+.tbar .a { background: var(--ink); color: var(--plate); }
+.tbar .u { background: color-mix(in srgb, var(--ink) 52%, var(--plate)); color: var(--plate); }
+.tbar .e { background: color-mix(in srgb, var(--ink) 24%, var(--plate)); color: var(--ink); }
+.tests .tot { font: 600 13px/1 var(--f-mono); text-align: right; }
+.tlegend { display: flex; gap: 16px; font-size: 12px; color: var(--ink-2); }
+.tlegend span { display: inline-flex; align-items: center; gap: 6px; }
+.tlegend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.proof { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.proof div { border-radius: 12px; padding: 12px 14px; background: var(--bad-bg); font-size: 12.5px; line-height: 1.45; color: var(--ink); display: flex; flex-direction: column; gap: 5px; }
+.proof .pt { display: flex; align-items: center; gap: 7px; font: 600 12px/1.3 var(--f-mono); color: var(--bad); }
+.where { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.where div { display: grid; grid-template-columns: 20px 1fr; gap: 9px; font-size: 12.5px; line-height: 1.45; color: var(--ink-2); }
+.where b { color: var(--ink); font-weight: 600; display: block; font-size: 13px; }
+</style>
+<div class="plate-wrap"><section class="plate" id="p-quality" data-name="09-quality" aria-label="Проверки: одна команда, два шва тестирования, счёт тестов">
+  <header class="ph">
+    <div class="tag"><b>Проверки</b><span>·</span><span>одинаково локально, в CI и у агента на раннере</span></div>
+    <h2>Одна команда отвечает, можно ли мержить</h2>
+    <p class="lede">Тесты проверяют приложение снаружи, как это делал бы пользователь: настоящими HTTP-запросами и настоящим браузером. Внутренние функции напрямую не тестируются, поэтому код можно перестраивать, не переписывая тесты.</p>
+  </header>
+
+  <div class="stack" style="gap:10px">
+    <div class="cmd"><svg class="ico"><use href="#i-terminal"/></svg>mise run check<small>эту же команду вызывают CI, git-хук перед пушем и агент в GitHub</small></div>
+    <div class="pipe">
+      <div class="stage"><div class="si"><svg class="ico"><use href="#i-search"/></svg><span class="chip soft">lint</span></div><b>Линтер</b><span>Oxlint и oxfmt. Ловит прямой fetch в интерфейсе.</span></div>
+      <div class="stage"><div class="si"><svg class="ico"><use href="#i-code"/></svg><span class="chip soft">typecheck</span></div><b>Типы</b><span>tsc по серверу, интерфейсу и тестам.</span></div>
+      <div class="stage"><div class="si"><svg class="ico"><use href="#i-repeat"/></svg><span class="chip soft">generate:check</span></div><b>Контракт = код</b><span>Генерация повторяется, расхождение роняет проверку.</span></div>
+      <div class="stage"><div class="si"><svg class="ico"><use href="#i-list"/></svg><span class="chip soft">test</span></div><b>109 тестов</b><span>Vitest: 84 по API запущенного сервера, 25 по интерфейсу.</span></div>
+      <div class="stage"><div class="si"><svg class="ico"><use href="#i-eye"/></svg><span class="chip soft">e2e</span></div><b>4 сценария</b><span>Playwright в Chromium с настоящим сервером.</span></div>
+    </div>
+  </div>
+
+  <div class="seams">
+    <div class="seam">
+      <h3>Шов 1. HTTP API запущенного сервера</h3>
+      <div class="path"><span>тест</span><svg class="ico"><use href="#i-arrow"/></svg><span>HTTP-запрос</span><svg class="ico"><use href="#i-arrow"/></svg><span>сервер на свободном порту</span><svg class="ico"><use href="#i-arrow"/></svg><span>ответ ↔ OpenAPI</span></div>
+      <p>Хранилище пустое, часы управляются тестом. <b>Каждый ответ сверяется с контрактом:</b> код должен быть описан у операции, тело проходит её схему. Здесь живут правила: окно записи, конфликт, частичное наложение, запись вплотную, одновременные запросы, телефон.</p>
+    </div>
+    <div class="seam">
+      <h3>Шов 2. Браузер с настоящим сервером</h3>
+      <div class="path"><span>Chromium</span><svg class="ico"><use href="#i-arrow"/></svg><span>собранное приложение</span><svg class="ico"><use href="#i-arrow"/></svg><span>тот же сервер</span></div>
+      <p><b>Ответы API не подменяются.</b> Сценарии: гость записывается, и слот закрывается для всех типов; гость оставляет телефон, владелец звонит по ссылке; слот заняли, пока гость заполнял форму; владелец создаёт тип встречи.</p>
+    </div>
+  </div>
+
+  <div class="stack" style="gap:10px">
+    <div class="loc-head"><h3>Счёт тестов по проектам</h3><div class="tlegend"><span><i style="background:var(--ink)"></i>API</span><span><i style="background:color-mix(in srgb, var(--ink) 52%, var(--plate))"></i>интерфейс</span><span><i style="background:color-mix(in srgb, var(--ink) 24%, var(--plate))"></i>браузер</span></div></div>
+    <div class="tests">
+      <span>Проект 1</span><div class="tbar" style="width:85.8%"><i class="a" style="flex:74">74</i><i class="u" style="flex:20">20</i><i class="e" style="flex:3">3</i></div><span class="tot">97</span>
+      <span>Проект 2</span><div class="tbar"><i class="a" style="flex:84">84</i><i class="u" style="flex:25">25</i><i class="e" style="flex:4">4</i></div><span class="tot">113</span>
+    </div>
+  </div>
+
+  <div class="stack" style="gap:10px">
+    <div class="loc-head"><h3>Тест обязан уметь падать: правило ломали нарочно</h3></div>
+    <div class="proof">
+      <div><span class="pt"><svg class="ico sm"><use href="#i-x"/></svg>проект 1, тикет #17</span>Правило пересечения записей временно отключено. Защищающий тест упал, после возврата правила прошёл.</div>
+      <div><span class="pt"><svg class="ico sm"><use href="#i-x"/></svg>5 тестов упали</span>На учебной ветке отключена проверка телефона. CI красный: сервер принял номер вместо ответа 422.</div>
+      <div><span class="pt"><svg class="ico sm"><use href="#i-x"/></svg>2 теста упали</span><span>В адрес ссылки <span class="mono">tel:</span> возвращены пробелы и скобки. CI красный на регрессионном тесте.</span></div>
+    </div>
+  </div>
+
+  <div class="where">
+    <div><svg class="ico"><use href="#i-terminal"/></svg><span><b>Локально</b>Хук перед пушем запускает все проверки, хук сообщения коммита проверяет формат Conventional Commits.</span></div>
+    <div><svg class="ico"><use href="#i-play"/></svg><span><b>GitHub Actions</b>Воркфлоу <span class="mono">ci</span> на каждый пуш и pull request. Проверка <span class="mono">check</span> обязательна для мержа в main.</span></div>
+    <div><svg class="ico"><use href="#i-cap"/></svg><span><b>Хекслет</b>Воркфлоу <span class="mono">hexlet-check</span> собирает Docker-образ, запускает его с PORT=8080 и открывает главную.</span></div>
+  </div>
+</section></div>
+
+<section class="part" id="part-2">
+  <div class="eyebrow">Часть 2 · репозиторий 387 · 21:14–23:44</div>
+  <h2>Проект 2. Агент переезжает в GitHub</h2>
+  <p>То же приложение, но работа над ним идёт через задачи и pull request. Агента зовут комментарием, его работу проверяют обычные шаги и отдельный ревьюер, а раз в сутки он сам ищет проблемы на опубликованной странице.</p>
+</section>
+
+<style>
+.wf { display: grid; grid-template-columns: 196px 18px 178px 18px 1fr 150px; column-gap: 8px; align-items: stretch; }
+.wf > * { padding: 13px 0; border-top: 1px solid var(--line-2); }
+.wf .hd { font: 600 11px/1.3 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); border-top: 0; padding: 0 0 8px; }
+.wf .ev { display: grid; grid-template-columns: 30px 1fr; gap: 10px; align-items: start; font-size: 12.5px; line-height: 1.4; }
+.wf .ev .ei { width: 30px; height: 30px; border-radius: 9px; background: var(--panel-2); display: grid; place-items: center; color: var(--ink); }
+.wf .ev b { display: block; font-weight: 600; font-size: 13px; }
+.wf .ev span { color: var(--ink-2); }
+.wf .ar { display: grid; place-items: center; color: var(--ink-3); }
+.wf .ar .ico { width: 15px; height: 15px; }
+.wf .who { display: flex; flex-direction: column; gap: 6px; }
+.wf .who code { font: 600 12.5px/1.3 var(--f-mono); }
+.wf .who .role { font-size: 12px; font-weight: 500; }
+.wf .out { font-size: 12.5px; line-height: 1.45; color: var(--ink-2); }
+.wf .out b { color: var(--ink); font-weight: 600; }
+.wf .lim { display: flex; flex-direction: column; gap: 5px; align-items: flex-start; }
+.wf .lim .chip { font-size: 11px; padding: 4px 8px; }
+.wf .lim small { font-size: 11.5px; line-height: 1.35; color: var(--ink-2); }
+.base3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.base3 div { background: var(--panel); border-radius: 12px; padding: 12px 14px; font-size: 12.5px; line-height: 1.42; color: var(--ink-2); display: flex; flex-direction: column; gap: 3px; }
+.base3 code { font: 600 12.5px/1.3 var(--f-mono); color: var(--ink); }
+</style>
+<div class="plate-wrap"><section class="plate" id="p-system" data-name="10-agent-system" aria-label="Шесть воркфлоу вокруг агента в GitHub">
+  <header class="ph">
+    <div class="tag"><b>Проект 2</b><span>·</span><span>агент в GitHub Actions, репозиторий 387</span></div>
+    <h2>Шесть воркфлоу: агент отвечает на события, обычные шаги держат его в рамках</h2>
+    <p class="lede">Агента зовут командой <span class="mono">/oc</span> или <span class="mono">/opencode</span> в комментарии. Остальное запускается само: новое обращение, новый коммит в pull request, расписание. Модель у всех одна: <span class="mono">opencode/deepseek-v4.1-flash</span>.</p>
+  </header>
+
+  <div class="wf">
+    <span class="hd">Событие</span><span class="hd"></span><span class="hd">Воркфлоу и исполнитель</span><span class="hd"></span><span class="hd">Что получается</span><span class="hd">Предел</span>
+
+    <div class="ev"><span class="ei"><svg class="ico"><use href="#i-chat"/></svg></span><div><b>Команда в комментарии</b><span>в issue, в PR или к строке diff</span></div></div>
+    <div class="ar"><svg class="ico"><use href="#i-arrow"/></svg></div>
+    <div class="who"><code>opencode</code><span class="role r-opencode">OpenCode</span><span class="role r-actions">счёт запусков</span></div>
+    <div class="ar"><svg class="ico"><use href="#i-arrow"/></svg></div>
+    <div class="out"><b>Ответ, ветка и pull request.</b> В issue агент создаёт ветку и открывает PR от имени приложения. В PR коммитит в его ветку.</div>
+    <div class="lim"><span class="chip">60 минут</span><span class="chip">4 запуска на PR</span><small>только владелец и соавторы</small></div>
+
+    <div class="ev"><span class="ei"><svg class="ico"><use href="#i-issue"/></svg></span><div><b>Новое обращение</b><span>issue открыто</span></div></div>
+    <div class="ar"><svg class="ico"><use href="#i-arrow"/></svg></div>
+    <div class="who"><code>opencode-triage</code><span class="role r-opencode">OpenCode</span></div>
+    <div class="ar"><svg class="ico"><use href="#i-arrow"/></svg></div>
+    <div class="out"><b>Разбор и метки.</b> Что уже умеет приложение, каких условий не хватает, следующий шаг. Код не меняется.</div>
+    <div class="lim"><span class="chip">15 минут</span><small>боты и готовые тикеты пропускаются</small></div>
+
+    <div class="ev"><span class="ei"><svg class="ico"><use href="#i-pr"/></svg></span><div><b>Новый коммит в PR</b><span>открыт или обновлён</span></div></div>
+    <div class="ar"><svg class="ico"><use href="#i-arrow"/></svg></div>
+    <div class="who"><code>opencode-review</code><span class="role r-opencode">OpenCode, только чтение</span></div>
+    <div class="ar"><svg class="ico"><use href="#i-arrow"/></svg></div>
+    <div class="out"><b>Независимое ревью.</b> Отдельный запуск сверяет diff с задачей и критериями из <span class="mono">REVIEW.md</span>. Править код он не может.</div>
+    <div class="lim"><span class="chip">20 минут</span><small>правила берутся из базовой ветки</small></div>
+
+    <div class="ev"><span class="ei"><svg class="ico"><use href="#i-eye"/></svg></span><div><b>Новый коммит в PR</b><span>тот же момент</span></div></div>
+    <div class="ar"><svg class="ico"><use href="#i-arrow"/></svg></div>
+    <div class="who"><code>pr-browser-check</code><span class="role r-actions">GitHub Actions</span></div>
+    <div class="ar"><svg class="ico"><use href="#i-arrow"/></svg></div>
+    <div class="out"><b>Доказательство работающей версии.</b> Браузерные сценарии на точном коммите. Артефакт с результатом, trace и SHA.</div>
+    <div class="lim"><span class="chip">15 минут</span><small>артефакт хранится 30 дней</small></div>
+
+    <div class="ev"><span class="ei"><svg class="ico"><use href="#i-list"/></svg></span><div><b>Новый коммит в PR</b><span>тот же момент</span></div></div>
+    <div class="ar"><svg class="ico"><use href="#i-arrow"/></svg></div>
+    <div class="who"><code>pr-commits</code><span class="role r-actions">GitHub Actions</span></div>
+    <div class="ar"><svg class="ico"><use href="#i-arrow"/></svg></div>
+    <div class="out"><b>Формат коммитов.</b> Каждый коммит PR проверяется на Conventional Commits: по ним собирается список изменений релиза.</div>
+    <div class="lim"><span class="chip">5 минут</span></div>
+
+    <div class="ev"><span class="ei"><svg class="ico"><use href="#i-clock"/></svg></span><div><b>Расписание</b><span>каждый день в 06:17 МСК или вручную</span></div></div>
+    <div class="ar"><svg class="ico"><use href="#i-arrow"/></svg></div>
+    <div class="who"><code>opencode-audit</code><span class="role r-actions">Lighthouse</span><span class="role r-opencode">OpenCode, только задачи</span></div>
+    <div class="ar"><svg class="ico"><use href="#i-arrow"/></svg></div>
+    <div class="out"><b>Задачи по находкам.</b> Обычные шаги снимают отчёт о странице, агент заводит задачу по каждой новой находке и не плодит дубли.</div>
+    <div class="lim"><span class="chip">25 минут</span><small>по одному запуску за раз</small></div>
+  </div>
+
+  <div class="stack" style="gap:10px">
+    <div class="subhead" style="margin:0">Основа из первого проекта, без модели</div>
+    <div class="base3">
+      <div><code>ci</code><span>Каждый пуш и PR: все проверки проекта. Обязательна для мержа в main.</span></div>
+      <div><code>release-please</code><span>Пуш в main: обновляет release-PR с версией и списком изменений.</span></div>
+      <div><code>hexlet-check</code><span>Каждый пуш: автопроверка Хекслета. Файл принадлежит курсу, менять его нельзя.</span></div>
+    </div>
+  </div>
+</section></div>
+
+<style>
+.xc { display: grid; grid-template-columns: 50px 1fr 22px 1fr; column-gap: 10px; row-gap: 8px; align-items: stretch; }
+.xc .xh { font-size: 12.5px; color: var(--ink-2); padding-bottom: 4px; display: flex; flex-direction: column; gap: 4px; }
+.xc .xt { font: 500 11.5px/1.3 var(--f-mono); color: var(--ink-2); padding-top: 11px; }
+.bub { border-radius: 13px; padding: 10px 13px; font-size: 13px; line-height: 1.42; background: color-mix(in srgb, var(--rc) 10%, var(--plate)); border-left: 3px solid var(--rc); display: flex; flex-direction: column; gap: 5px; }
+.bub b { font-weight: 600; }
+.bub .meta { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.bub .meta .chip { font-size: 10.5px; padding: 3px 7px; background: var(--plate); }
+.bub.none { background: transparent; border-left: 0; }
+.xa { display: grid; place-items: center; color: var(--ink-3); }
+.xa .ico { width: 15px; height: 15px; }
+.xbreak { grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; font: 500 11.5px/1.4 var(--f-mono); color: var(--ink-2); padding: 6px 0; }
+.xbreak::before, .xbreak::after { content: ""; flex: 1; border-top: 1px dashed var(--line); }
+.tgraph { display: inline-flex; align-items: center; gap: 5px; font: 600 11px/1 var(--f-mono); }
+.tgraph span { background: var(--plate); border: 1px solid var(--line); border-radius: 6px; padding: 3px 6px; }
+.tgraph .col { display: inline-flex; flex-direction: column; gap: 3px; border: 0; padding: 0; background: none; }
+.tgraph .ico { width: 12px; height: 12px; color: var(--ink-3); }
+.cyc-stats { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--line); }
+</style>
+<div class="plate-wrap"><section class="plate" id="p-cycle" data-name="11-cycle" aria-label="Один цикл доработки: от обращения до мержа за полтора часа">
+  <header class="ph">
+    <div class="tag"><b>Цикл доработки</b><span>·</span><span>issue #4 → спецификация #6 → тикеты #7–#10 → PR #16</span></div>
+    <h2>От жалобы «не могу связаться с гостем» до мержа: вся переписка</h2>
+    <p class="lede">Слева реплики владельца репозитория, справа ответы агента и автоматики. Каждая строка это настоящий комментарий в issue или pull request. Агент не угадывает требования: он задаёт вопросы, а объём подтверждается до первой строки кода.</p>
+  </header>
+
+  <div class="xc">
+    <span></span>
+    <div class="xh"><span class="role r-claude">Владелец репозитория</span><span>реплики написал Claude Code по поручению владельца</span></div>
+    <span></span>
+    <div class="xh"><span class="legend"><span class="role r-opencode">OpenCode</span><span class="role r-actions">GitHub Actions</span></span><span>ответы в том же обсуждении, с длительностью запуска</span></div>
+
+    <span class="xt">21:33</span>
+    <div class="bub r-claude"><span><b>Обращение #4.</b> Гость не вышел на звонок, а у владельца только его email. Нужен необязательный телефон.</span><span class="meta"><span class="chip">/oc разбери обращение</span></span></div>
+    <div class="xa"><svg class="ico"><use href="#i-arrow"/></svg></div>
+    <div class="bub r-opencode"><span><b>Разбор.</b> Нашёл форму, контракт и тесты со ссылками на строки. Это новая функция, не поломка. Шесть вопросов, к каждому рекомендуемый ответ.</span><span class="meta"><span class="chip">2 мин</span></span></div>
+
+    <span class="xt">21:36</span>
+    <div class="bub r-claude"><span><b>Шесть ответов.</b> Одно поле, мягкая проверка, email остаётся обязательным, телефон виден гостю и владельцу.</span><span class="meta"><span class="chip">/oc запусти to-spec</span></span></div>
+    <div class="xa"><svg class="ico"><use href="#i-arrow"/></svg></div>
+    <div class="bub r-opencode"><span><b>Спецификация #6.</b> Основной, негативный и соседний сценарии, цепочка от контракта до интерфейса.</span><span class="meta"><span class="chip">2 мин</span></span></div>
+
+    <span class="xt">21:38</span>
+    <div class="bub r-claude"><span>Спецификация прочитана, сценарии совпадают с ответами.</span><span class="meta"><span class="chip">/oc запусти to-tickets</span></span></div>
+    <div class="xa"><svg class="ico"><use href="#i-arrow"/></svg></div>
+    <div class="bub r-opencode"><span><b>Четыре тикета</b> с зависимостями:</span><span class="meta"><span class="tgraph"><span>#7 контракт и сервер</span><svg class="ico"><use href="#i-arrow"/></svg><span class="col"><span>#8 форма гостя</span><span>#9 список владельца</span></span><svg class="ico"><use href="#i-arrow"/></svg><span>#10 сценарий и документы</span></span></span></div>
+
+    <span class="xt">21:41</span>
+    <div class="bub r-claude"><span><b>Согласование.</b> Объём подтверждён, можно реализовывать. Если по ходу поведение меняется, вопрос возвращается сюда до правки кода.</span></div>
+    <span></span><span></span>
+
+    <div class="xbreak">54 минуты паузы: Claude Code строит ревью, предел запусков и браузерную проверку</div>
+
+    <span class="xt">22:35</span>
+    <div class="bub r-claude"><span>По коммиту на тикет, каждый тикет начинается с теста, в конце все проверки зелёные.</span><span class="meta"><span class="chip">/oc запусти implement-spec</span></span></div>
+    <div class="xa"><svg class="ico"><use href="#i-arrow"/></svg></div>
+    <div class="bub r-opencode"><span><b>Pull request #16.</b> Четыре коммита, 17 файлов: контракт, генерация, сервер, форма, список владельца, тесты, документация.</span><span class="meta"><span class="chip">4 мин</span><span class="chip">+338 −11</span></span></div>
+
+    <span class="xt">22:45</span>
+    <div class="bub none"></div>
+    <span></span>
+    <div class="bub r-actions"><span><b>Проверки зелёные:</b> все тесты, браузерный сценарий на точном коммите, формат коммитов. <b>Независимое ревью:</b> дефектов нет, одно замечание к тексту ошибки.</span><span class="meta"><span class="chip">6 мин</span></span></div>
+
+    <span class="xt">22:50</span>
+    <div class="bub r-claude"><span><b>Общий комментарий.</b> Текст ошибки должен говорить, что в номере нужна хотя бы одна цифра.</span></div>
+    <div class="xa"><svg class="ico"><use href="#i-arrow"/></svg></div>
+    <div class="bub r-opencode"><span>Исправлено на сервере и в форме, добавлен тест.</span><span class="meta"><span class="chip">fix 05c2b6b</span><span class="chip">2 мин</span></span></div>
+
+    <span class="xt">22:53</span>
+    <div class="bub r-claude"><span><b>Комментарий к строке diff.</b> В адрес ссылки <span class="mono">tel:</span> попадают пробелы и скобки, часть телефонов по такой ссылке не звонит.</span></div>
+    <div class="xa"><svg class="ico"><use href="#i-arrow"/></svg></div>
+    <div class="bub r-opencode"><span>В адресе остались цифры и плюс, добавлен регрессионный тест.</span><span class="meta"><span class="chip">fix 8385562</span><span class="chip">2 мин</span></span></div>
+
+    <span class="xt">22:56</span>
+    <div class="bub r-claude"><span>Ревью эту ошибку пропустило. Нужен критерий, чтобы следующее ревью ловило такой класс ошибок.</span></div>
+    <div class="xa"><svg class="ico"><use href="#i-arrow"/></svg></div>
+    <div class="bub r-opencode"><span>В <span class="mono">REVIEW.md</span> добавлен критерий про адреса ссылок из данных гостя.</span><span class="meta"><span class="chip">docs 7d06534</span><span class="chip">1 мин</span></span></div>
+
+    <span class="xt">22:58</span>
+    <div class="bub r-claude"><span>Перед мержем: сверь PR со спецификацией и критериями приёмки всех тикетов.</span></div>
+    <div class="xa"><svg class="ico"><use href="#i-arrow"/></svg></div>
+    <div class="bub r-opencode"><span>По каждому критерию назван тест или файл со строкой. Неподтверждённых нет.</span><span class="meta"><span class="chip">3 мин</span></span></div>
+
+    <span class="xt">23:02</span>
+    <div class="bub r-claude"><span>Пятый, учебный вызов: проверяем, что предел работает.</span></div>
+    <div class="xa"><svg class="ico"><use href="#i-arrow"/></svg></div>
+    <div class="bub r-actions"><span><b>Отказ.</b> Использовано 5 запусков при пределе 4. Модель не вызывалась.</span><span class="meta"><span class="chip bad"><svg class="ico sm"><use href="#i-stop"/></svg>limit_exhausted</span></span></div>
+
+    <span class="xt">23:04</span>
+    <div class="bub r-claude"><span><b>Решение о мерже.</b> Разобрано каждое замечание, принят риск: телефоны видны без входа. PR влит.</span></div>
+    <div class="xa"><svg class="ico"><use href="#i-arrow"/></svg></div>
+    <div class="bub r-actions"><span>Обращение, спецификация и тикеты закрыты. release-please добавил доработку в release-PR версии 1.0.0.</span></div>
+  </div>
+
+  <div class="cyc-stats stats" style="grid-template-columns:repeat(4,1fr)">
+    <div class="stat"><div class="num">1<small>ч</small> 31<small>мин</small></div><div class="lbl">от обращения до мержа, включая 54 минуты постройки конвейера</div></div>
+    <div class="stat"><div class="num">17<small>мин</small></div><div class="lbl">работал агент над задачей в восьми запусках</div></div>
+    <div class="stat"><div class="num">6</div><div class="lbl">вопросов задал агент до спецификации</div></div>
+    <div class="stat"><div class="num">0</div><div class="lbl">строк кода до согласования объёма</div></div>
+  </div>
+</section></div>
+
+<style>
+.pr2 { display: grid; grid-template-columns: 1.02fr 1fr; gap: 26px; }
+.commits { list-style: none; margin: 0; padding: 0; position: relative; display: flex; flex-direction: column; gap: 0; }
+.commits::before { content: ""; position: absolute; left: 7px; top: 12px; bottom: 12px; border-left: 2px solid var(--line); }
+.commits li { display: grid; grid-template-columns: 16px 1fr; gap: 12px; padding: 7px 0; position: relative; }
+.commits .dot { width: 16px; height: 16px; border-radius: 50%; background: var(--opencode); border: 3px solid var(--plate); margin-top: 2px; z-index: 1; }
+.commits .cm { font-size: 13px; line-height: 1.38; }
+.commits .cm b { font: 600 12px/1 var(--f-mono); }
+.commits .cmeta { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+.commits .cmeta .chip { font-size: 10.5px; padding: 3px 7px; }
+.commits .sep { font: 500 11px/1.3 var(--f-mono); color: var(--ink-2); padding: 8px 0 2px 28px; letter-spacing: .04em; }
+.h3 { font: 600 15px/1.3 var(--f-text); margin: 0 0 8px; }
+.proved { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 9px; }
+.proved li { display: grid; grid-template-columns: 22px 1fr; gap: 10px; font-size: 13px; line-height: 1.42; color: var(--ink-2); }
+.proved li b { color: var(--ink); font-weight: 600; }
+.proved .ok { width: 20px; height: 20px; border-radius: 50%; background: var(--good-bg); color: var(--good); display: grid; place-items: center; margin-top: 1px; }
+.proved .ok .ico { width: 13px; height: 13px; stroke-width: 2.4; }
+.budget { background: var(--panel); border-radius: 14px; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; }
+.tokens { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.tok { border-radius: 10px; padding: 9px 8px 8px; background: var(--plate); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; line-height: 1.3; color: var(--ink-2); position: relative; }
+.tok b { font: 600 15px/1 var(--f-display); color: var(--ink); display: flex; align-items: center; justify-content: space-between; }
+.tok b i { width: 10px; height: 10px; border-radius: 3px; background: var(--opencode); }
+.tok.no { border-color: transparent; background: var(--bad-bg); color: var(--bad); }
+.tok.no b { color: var(--bad); }
+.tok.no b .ico { width: 14px; height: 14px; stroke-width: 2.4; }
+.budget p { margin: 0; font-size: 12.5px; line-height: 1.45; color: var(--ink-2); }
+.budget p b { color: var(--ink); font-weight: 600; }
+.prnums { display: grid; grid-template-columns: repeat(5, 1fr); border-top: 1px solid var(--line); }
+</style>
+<div class="plate-wrap"><section class="plate" id="p-pr" data-name="12-pull-request" aria-label="Pull request номер 16: коммиты агента, доказательства перед мержем и предел запусков">
+  <header class="ph">
+    <div class="tag"><b>PR #16</b><span>·</span><span>автор opencode-agent[bot], ветка opencode/issue4</span></div>
+    <h2>Pull request агента: семь коммитов, шесть доказательств, один отказ</h2>
+    <p class="lede">Мерж разрешает не уверенность агента, а проверяемые факты: зелёные прогоны на последнем коммите, красные прогоны при сломанном поведении и артефакт, чей SHA совпадает с головой PR.</p>
+  </header>
+
+  <div class="pr2">
+    <div>
+      <h3 class="h3">Что закоммитил агент</h3>
+      <ol class="commits">
+        <li class="sep" style="display:block">по команде implement-spec, 22:37–22:39</li>
+        <li><span class="dot"></span><div class="cm"><b>feat</b> необязательный телефон в контракте и на сервере<div class="cmeta"><span class="chip soft">тикет #7</span><span class="chip soft">dd071c1</span></div></div></li>
+        <li><span class="dot"></span><div class="cm"><b>feat</b> гость указывает телефон и видит его в подтверждении<div class="cmeta"><span class="chip soft">тикет #8</span><span class="chip soft">c23c372</span></div></div></li>
+        <li><span class="dot"></span><div class="cm"><b>feat</b> владелец видит телефон гостя в предстоящих встречах<div class="cmeta"><span class="chip soft">тикет #9</span><span class="chip soft">ee9e246</span></div></div></li>
+        <li><span class="dot"></span><div class="cm"><b>feat</b> сквозной сценарий с телефоном и документация<div class="cmeta"><span class="chip soft">тикет #10</span><span class="chip soft">c46fc3f</span></div></div></li>
+        <li class="sep" style="display:block">по замечаниям в PR, 22:52–22:57</li>
+        <li><span class="dot"></span><div class="cm"><b>fix</b> объяснить, что телефону нужна хотя бы одна цифра<div class="cmeta"><span class="chip soft">общий комментарий</span><span class="chip soft">05c2b6b</span></div></div></li>
+        <li><span class="dot"></span><div class="cm"><b>fix</b> очистить tel-адрес телефона гостя<div class="cmeta"><span class="chip soft">комментарий к строке diff</span><span class="chip soft">8385562</span></div></div></li>
+        <li><span class="dot"></span><div class="cm"><b>docs</b> критерий очистки адресов ссылок из данных гостя<div class="cmeta"><span class="chip soft">уточнение правил ревью</span><span class="chip soft">7d06534</span></div></div></li>
+      </ol>
+    </div>
+    <div>
+      <h3 class="h3">Что доказано перед мержем</h3>
+      <ul class="proved">
+        <li><span class="ok"><svg class="ico"><use href="#i-check"/></svg></span><span><b>Основной сценарий.</b> Запись с телефоном, владелец видит номер: тесты API и браузерный сценарий.</span></li>
+        <li><span class="ok"><svg class="ico"><use href="#i-check"/></svg></span><span><b>Негативный сценарий.</b> Некорректный телефон даёт 422 и не занимает слот. С отключённой проверкой падают 5 тестов.</span></li>
+        <li><span class="ok"><svg class="ico"><use href="#i-check"/></svg></span><span><b>Соседний сценарий.</b> Запись без телефона и отказ при занятом времени работают как раньше, старые тесты не тронуты.</span></li>
+        <li><span class="ok"><svg class="ico"><use href="#i-check"/></svg></span><span><b>Регрессия ссылки.</b> Если вернуть пробелы в адрес <span class="mono">tel:</span>, падают 2 теста.</span></li>
+        <li><span class="ok"><svg class="ico"><use href="#i-check"/></svg></span><span><b>Работающая версия.</b> В браузерном артефакте записан SHA <span class="mono">7d06534</span>, тот же, что у головы PR.</span></li>
+        <li><span class="ok"><svg class="ico"><use href="#i-check"/></svg></span><span><b>История.</b> Все 7 коммитов в формате Conventional Commits и ссылаются на тикеты.</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="budget">
+    <h3 class="h3" style="margin:0">Предел: четыре обращения к агенту на один pull request</h3>
+    <div class="tokens">
+      <div class="tok"><b>1<i></i></b>общий комментарий</div>
+      <div class="tok"><b>2<i></i></b>комментарий к строке diff</div>
+      <div class="tok"><b>3<i></i></b>критерий в REVIEW.md</div>
+      <div class="tok"><b>4<i></i></b>сверка с критериями приёмки</div>
+      <div class="tok no"><b>5<svg class="ico"><use href="#i-x"/></svg></b>отказ до вызова модели</div>
+    </div>
+    <p><b>Счёт ведут обычные шаги, а не агент.</b> Число запусков берётся из истории GitHub Actions, скрипт счёта выполняется из основной ветки. При отказе в PR появляется комментарий с причиной, последним SHA и ссылкой на логи. Следующее действие выбирает человек.</p>
+  </div>
+
+  <div class="stats prnums">
+    <div class="stat"><div class="num">17</div><div class="lbl">файлов изменено</div></div>
+    <div class="stat"><div class="num">+338</div><div class="lbl">строк добавлено, 11 удалено</div></div>
+    <div class="stat"><div class="num">3</div><div class="lbl">независимых ревью, по одному на версию</div></div>
+    <div class="stat"><div class="num">2</div><div class="lbl">красных прогона на учебных ветках</div></div>
+    <div class="stat"><div class="num">25<small>мин</small></div><div class="lbl">от открытия PR до мержа</div></div>
+  </div>
+</section></div>
+
+<style>
+.gates { display: flex; flex-direction: column; position: relative; }
+.gates::before { content: ""; position: absolute; left: 17px; top: 20px; bottom: 20px; border-left: 2px solid var(--line); }
+.gate { display: grid; grid-template-columns: 36px 1fr 250px; gap: 14px; padding: 10px 0; align-items: center; position: relative; }
+.gate .gn { width: 36px; height: 36px; border-radius: 11px; background: var(--plate); border: 1px solid var(--line); display: grid; place-items: center; color: var(--ink); z-index: 1; }
+.gate .gt { font-size: 13px; line-height: 1.42; color: var(--ink-2); }
+.gate .gt b { display: block; font-weight: 600; font-size: 14px; color: var(--ink); }
+.gate .stopper { display: grid; grid-template-columns: 16px 1fr; gap: 8px; font-size: 12px; line-height: 1.38; color: var(--bad); background: var(--bad-bg); border-radius: 10px; padding: 8px 11px; align-items: start; }
+.gate .stopper .ico { width: 14px; height: 14px; margin-top: 1px; stroke-width: 2.2; }
+.gate .stopper span { color: var(--ink); }
+.gates-head { display: grid; grid-template-columns: 36px 1fr 250px; gap: 14px; font: 600 11px/1.3 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); padding-bottom: 4px; }
+.funnelbar { display: flex; height: 34px; gap: 2px; }
+.funnelbar i { font: 600 12px/34px var(--f-mono); font-style: normal; text-align: center; border-radius: 4px; white-space: nowrap; overflow: hidden; }
+.fb-skip { background: var(--panel-2); color: var(--ink); }
+.fb-run { background: var(--opencode); color: #fff; }
+.fb-no { background: var(--bad); color: #fff; }
+.fb-cap { display: flex; justify-content: space-between; gap: 16px; font-size: 12.5px; color: var(--ink-2); line-height: 1.4; }
+.fb-cap b { color: var(--ink); font-weight: 600; }
+.reasons { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.reasons div { border: 1px solid var(--line); border-radius: 10px; padding: 9px 10px; font-size: 11.5px; line-height: 1.38; color: var(--ink-2); display: flex; flex-direction: column; gap: 3px; }
+.reasons code { font: 600 11.5px/1.3 var(--f-mono); color: var(--ink); }
+</style>
+<div class="plate-wrap"><section class="plate" id="p-guards" data-name="13-guards" aria-label="Предохранители: восемь условий между командой агенту и основной веткой">
+  <header class="ph">
+    <div class="tag"><b>Предохранители</b><span>·</span><span>что стоит между командой агенту и основной веткой</span></div>
+    <h2>Восемь шлюзов: агент может многое, но не всё и не для всех</h2>
+    <p class="lede">У агента на раннере есть ключ модели и право писать в репозиторий. Поэтому каждое ограничение проверяют обычные шаги воркфлоу до того, как модель получит слово, и после того, как она закончила.</p>
+  </header>
+
+  <div>
+    <div class="gates-head"><span></span><span>Шлюз и правило</span><span>Что он останавливает</span></div>
+    <div class="gates">
+      <div class="gate"><span class="gn"><svg class="ico"><use href="#i-user"/></svg></span><div class="gt"><b>1. Кто написал комментарий</b>Команду принимают только от владельца, участников и соавторов репозитория. Комментарии ботов не считаются.</div><div class="stopper"><svg class="ico"><use href="#i-x"/></svg><span>посторонний пишет /oc в чужом issue</span></div></div>
+      <div class="gate"><span class="gn"><svg class="ico"><use href="#i-branch"/></svg></span><div class="gt"><b>2. Откуда pull request</b>Для PR из чужой копии репозитория агент и секреты недоступны.</div><div class="stopper"><svg class="ico"><use href="#i-x"/></svg><span>fork подменяет воркфлоу, чтобы увидеть ключ</span></div></div>
+      <div class="gate"><span class="gn"><svg class="ico"><use href="#i-stop"/></svg></span><div class="gt"><b>3. Остался ли бюджет</b>Не больше четырёх запусков на PR. Счёт идёт по истории Actions, скрипт берётся из основной ветки.</div><div class="stopper"><svg class="ico"><use href="#i-x"/></svg><span>бесконечный цикл «исправь ещё раз»</span></div></div>
+      <div class="gate"><span class="gn"><svg class="ico"><use href="#i-clock"/></svg></span><div class="gt"><b>4. Сколько времени</b>Интерактивный запуск живёт 60 минут, затем получает сигнал остановки. У разбора 15, у ревью 20, у аудита 25.</div><div class="stopper"><svg class="ico"><use href="#i-x"/></svg><span>зависший агент, который жжёт минуты и деньги</span></div></div>
+      <div class="gate"><span class="gn"><svg class="ico"><use href="#i-key"/></svg></span><div class="gt"><b>5. Что может токен</b>У задания право только читать код. Ветку и PR создаёт приложение OpenCode. Ревьюер и аудитор не могут править файлы.</div><div class="stopper"><svg class="ico"><use href="#i-x"/></svg><span>ревьюер «заодно поправил» проверяемый код</span></div></div>
+      <div class="gate"><span class="gn"><svg class="ico"><use href="#i-lock"/></svg></span><div class="gt"><b>6. Чьи правила исполняются</b>Настройки и критерии ревьюера берутся из базовой ветки. Код PR лежит рядом как данные.</div><div class="stopper"><svg class="ico"><use href="#i-x"/></svg><span>PR переписывает правила собственной проверки</span></div></div>
+      <div class="gate"><span class="gn"><svg class="ico"><use href="#i-shield"/></svg></span><div class="gt"><b>7. Что проверено</b>Все проверки проекта обязательны для мержа. Рядом браузерный сценарий на точном коммите, формат коммитов и независимое ревью.</div><div class="stopper"><svg class="ico"><use href="#i-x"/></svg><span>«у меня всё зелёное» без доказательств</span></div></div>
+      <div class="gate"><span class="gn"><svg class="ico"><use href="#i-flag"/></svg></span><div class="gt"><b>8. Кто мержит</b>Основная ветка защищена. Агент открывает PR, решение о мерже записывает и принимает владелец.</div><div class="stopper"><svg class="ico"><use href="#i-x"/></svg><span>агент сам влил свою работу в main</span></div></div>
+    </div>
+  </div>
+
+  <div class="stack" style="gap:9px">
+    <h3 class="h3" style="margin:0">Как это выглядело на деле: 40 комментариев, 10 запусков модели</h3>
+    <div class="funnelbar" role="img" aria-label="Из 40 событий-комментариев 29 пропущены фильтром, 10 запустили агента, 1 отклонён пределом">
+      <i class="fb-skip" style="flex:29">29 пропущено: в комментарии нет команды или автор бот</i>
+      <i class="fb-run" style="flex:10">10 запусков</i>
+      <i class="fb-no" style="flex:1.6">1</i>
+    </div>
+    <div class="fb-cap"><span>Воркфлоу <span class="mono">opencode</span> просыпается на каждый комментарий в issue и PR, включая отчёты самих ботов.</span><span><b>1 отказ по пределу.</b> Модель при этом не вызывается.</span></div>
+  </div>
+
+  <div class="stack" style="gap:9px">
+    <h3 class="h3" style="margin:0">Чем может закончиться запуск: причина всегда названа</h3>
+    <div class="reasons">
+      <div><code>success</code>агент ответил или закоммитил</div>
+      <div><code>limit_exhausted</code>предел запусков на PR исчерпан</div>
+      <div><code>timeout</code>работа не уложилась в 60 минут</div>
+      <div><code>infra</code>нет ключа модели или сбой окружения</div>
+      <div><code>agent_failed</code>агент завершился с ошибкой</div>
+    </div>
+  </div>
+</section></div>
+
+<style>
+.rv-head { display: grid; grid-template-columns: 44px 300px 1fr; gap: 14px; font: 600 11px/1.3 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); padding-bottom: 6px; }
+.rv { display: grid; grid-template-columns: 44px 300px 1fr; gap: 14px; padding: 11px 0; border-top: 1px solid var(--line-2); align-items: start; }
+.rv .dn { font: 600 12px/22px var(--f-mono); background: var(--panel-2); border-radius: 7px; text-align: center; height: 22px; }
+.rv-t { display: flex; flex-direction: column; gap: 7px; }
+.rv-t b { font-weight: 600; font-size: 13.5px; line-height: 1.3; }
+.rv-b { display: flex; gap: 4px; align-items: center; height: 20px; }
+.rv-b i { height: 20px; border-radius: 4px; background: var(--opencode); color: #fff; font: 600 10.5px/20px var(--f-mono); font-style: normal; text-align: center; }
+.rv-b em { font: 500 10.5px/1 var(--f-mono); font-style: normal; color: var(--ink-2); margin-right: 4px; }
+.rv-f { font-size: 12.5px; line-height: 1.45; color: var(--ink-2); }
+.rv-f b { color: var(--ink); font-weight: 600; }
+.missed { display: grid; grid-template-columns: 1fr 26px 1fr 26px 1fr; align-items: stretch; }
+.missed .mc { border-radius: 13px; padding: 13px 15px; font-size: 12.5px; line-height: 1.45; color: var(--ink-2); display: flex; flex-direction: column; gap: 5px; }
+.missed .mc b { color: var(--ink); font-weight: 600; font-size: 13.5px; }
+.missed .mc.m1 { background: var(--bad-bg); }
+.missed .mc.m2 { background: var(--panel); }
+.missed .mc.m3 { background: var(--good-bg); }
+.missed .ma { display: grid; place-items: center; color: var(--ink-3); }
+.missed .ma .ico { width: 16px; height: 16px; }
+.indep { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.indep div { display: grid; grid-template-columns: 20px 1fr; gap: 9px; font-size: 12.5px; line-height: 1.42; color: var(--ink-2); }
+.indep b { display: block; color: var(--ink); font-weight: 600; font-size: 13px; }
+</style>
+<div class="plate-wrap"><section class="plate" id="p-review" data-name="14-review" aria-label="Независимое ревью: пятнадцать запусков, что найдено и что пропущено">
+  <header class="ph">
+    <div class="tag"><b>Независимое ревью</b><span>·</span><span>отдельный запуск агента на каждую версию pull request</span></div>
+    <h2>15 ревью за вечер: самое ценное найдено в правилах самого конвейера</h2>
+    <p class="lede">Ревьюер это тот же OpenCode, но в отдельном запуске, без контекста автора и без права править файлы. Он читает diff, задачу и критерии из <span class="mono">REVIEW.md</span>, а замечания публикует комментарием. Править или нет, решает человек.</p>
+  </header>
+
+  <div>
+    <div class="rv-head"><span>PR</span><span>Что проверялось и сколько шло ревью</span><span>Что нашло</span></div>
+    <div class="rv"><span class="dn">#14</span><div class="rv-t"><b>Ревью, предел запусков, браузерная проверка</b><span class="rv-b"><i style="width:103px">8:33</i><i style="width:69px">5:43</i><i style="width:56px">4:38</i></span></div><div class="rv-f"><b>13 замечаний.</b> Секрет модели был доступен коду из проверяемого PR. Скрипт счёта запусков брался из PR. Повтор старого прогона обходил предел.</div></div>
+    <div class="rv"><span class="dn">#15</span><div class="rv-t"><b>Аудит по расписанию</b><span class="rv-b"><i style="width:62px">5:10</i><i style="width:54px">4:29</i></span></div><div class="rv-f"><b>10 замечаний.</b> Одна находка в двух категориях давала дубли задач. Текст с проверяемой страницы попадал к агенту без оговорки, что это данные.</div></div>
+    <div class="rv"><span class="dn">#16</span><div class="rv-t"><b>Телефон гостя, PR агента</b><span class="rv-b"><i style="width:73px">6:05</i><i style="width:26px"></i><em>2:12</em><i style="width:49px">4:04</i></span></div><div class="rv-f"><b>1 замечание к коду:</b> текст ошибки не называл обязательную цифру. Ошибку в адресе ссылки пропустило.</div></div>
+    <div class="rv"><span class="dn">#22</span><div class="rv-t"><b>Замеры скорости вне аудита</b><span class="rv-b"><i style="width:19px"></i><em>1:35</em></span></div><div class="rv-f">Дефектов нет. Отмечен риск: настоящая деградация скорости не станет задачей сама.</div></div>
+    <div class="rv"><span class="dn">#23</span><div class="rv-t"><b>Результаты в README</b><span class="rv-b"><i style="width:63px">5:13</i><i style="width:23px"></i><em>1:55</em></span></div><div class="rv-f"><b>3 фактические ошибки</b> в отчёте: время реализации, длительность ревью, покрытие тестами. Сверено с историей прогонов.</div></div>
+    <div class="rv"><span class="dn">#24</span><div class="rv-t"><b>Журнал аудита</b><span class="rv-b"><i style="width:65px">5:26</i><i style="width:21px"></i><em>1:46</em><i style="width:20px"></i><em>1:42</em></span></div><div class="rv-f">Непроверенная ветка правила и противоречие двух шагов в запросе агенту. Оба исправлены до мержа.</div></div>
+    <div class="rv"><span class="dn">#26</span><div class="rv-t"><b>Новые запуски аудита в README</b><span class="rv-b"><i style="width:30px"></i><em>2:31</em></span></div><div class="rv-f">Дефектов нет. Одна формулировка расходилась с описанным исключением.</div></div>
+  </div>
+
+  <div class="stack" style="gap:10px">
+    <h3 class="h3" style="margin:0">Чего ревью не увидело и что с этим сделали</h3>
+    <div class="missed">
+      <div class="mc m1"><b>Пропуск</b><span>В адрес ссылки <span class="mono">tel:</span> номер попадал с пробелами и скобками. Ревью PR #16 этого не заметило: в критериях не было ничего про ссылки из данных гостя.</span></div>
+      <div class="ma"><svg class="ico"><use href="#i-arrow"/></svg></div>
+      <div class="mc m2"><b>Кто нашёл</b><span>Владелец при чтении diff. Замечание ушло агенту комментарием к конкретной строке.</span></div>
+      <div class="ma"><svg class="ico"><use href="#i-arrow"/></svg></div>
+      <div class="mc m3"><b>Защита от повторения</b><span>Регрессионный тест на адрес ссылки и новый критерий в <span class="mono">REVIEW.md</span>. Тест проверен: при возврате ошибки CI падает.</span></div>
+    </div>
+  </div>
+
+  <div class="indep">
+    <div><svg class="ico"><use href="#i-eye"/></svg><span><b>Только чтение</b>Правка файлов и сеть запрещены. Разрешены команды просмотра git и gh.</span></div>
+    <div><svg class="ico"><use href="#i-lock"/></svg><span><b>Свои правила</b>Критерии и настройки из базовой ветки, а не из проверяемого PR.</span></div>
+    <div><svg class="ico"><use href="#i-repeat"/></svg><span><b>Каждая версия</b>Новый коммит отменяет идущее ревью и запускает новое.</span></div>
+    <div><svg class="ico"><use href="#i-clock"/></svg><span><b>От 1,5 до 8,5 минут</b>Самые долгие ревью у PR, которые меняют воркфлоу.</span></div>
+  </div>
+</section></div>
+
+<style>
+.aflow { display: grid; grid-template-columns: 1fr 16px 1fr 16px 1fr 16px 1fr 16px 1.1fr; align-items: stretch; }
+.aflow .fstep .fi { color: var(--rc, var(--ink-2)); display: flex; align-items: center; gap: 7px; font: 600 11px/1.2 var(--f-mono); letter-spacing: .03em; }
+.cases { display: grid; grid-template-columns: 1fr 1fr; gap: 0 26px; }
+.case { display: grid; grid-template-columns: 150px 16px 1fr; gap: 10px; padding: 9px 0; border-top: 1px solid var(--line-2); font-size: 12.5px; line-height: 1.42; align-items: start; }
+.case .cw { font-weight: 600; }
+.case .ico { width: 14px; height: 14px; color: var(--ink-3); margin-top: 2px; }
+.case .co { color: var(--ink-2); }
+.case .co b { color: var(--ink); font-weight: 600; }
+.audit2 { display: grid; grid-template-columns: 1.08fr 1fr; gap: 26px; align-items: start; }
+.sc svg { display: block; width: 100%; height: auto; overflow: visible; }
+.sc text { font-family: var(--f-text); font-size: 11.5px; fill: var(--ink-2); }
+.sc .ax { font-family: var(--f-mono); font-size: 10.5px; }
+.sc .em { fill: var(--ink); font-weight: 600; font-size: 12px; paint-order: stroke; stroke: var(--plate); stroke-width: 5px; stroke-linejoin: round; }
+.fate { display: flex; flex-direction: column; gap: 7px; }
+.fate .fr { display: grid; grid-template-columns: 44px 1fr auto; gap: 10px; align-items: center; font-size: 12.5px; line-height: 1.35; padding: 7px 10px; border-radius: 10px; background: var(--panel); }
+.fate .fr .dn { font: 600 12px/22px var(--f-mono); background: var(--plate); border-radius: 7px; text-align: center; height: 22px; }
+.fate .fr .chip { font-size: 10.5px; padding: 4px 8px; }
+.fate p { margin: 4px 0 0; font-size: 12.5px; line-height: 1.45; color: var(--ink-2); }
+.fate p b { color: var(--ink); font-weight: 600; }
+.keep { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.keep div { display: grid; grid-template-columns: 20px 1fr; gap: 9px; font-size: 12.5px; line-height: 1.42; color: var(--ink-2); }
+.keep b { display: block; color: var(--ink); font-weight: 600; font-size: 13px; }
+</style>
+<div class="plate-wrap"><section class="plate" id="p-audit" data-name="15-audit" aria-label="Ежедневный аудит: от расписания до задач без дублей">
+  <header class="ph">
+    <div class="tag"><b>Работа по расписанию</b><span>·</span><span>каждый день в 06:17 МСК, без человека</span></div>
+    <h2>Аудит сам находит проблемы страницы и не заводит одну задачу дважды</h2>
+    <p class="lede">Измеряют обычные шаги, а не модель: они будят сервис и снимают отчёт Lighthouse. Агенту достаётся то, что у него получается лучше: понять находку, найти похожую задачу и описать проблему человеческим языком.</p>
+  </header>
+
+  <div class="aflow funnel">
+    <div class="fstep r-actions"><span class="fi"><svg class="ico sm"><use href="#i-clock"/></svg>запуск</span><span class="ft">Расписание</span><span class="fs">или кнопка Run workflow</span></div>
+    <div class="farrow"><svg class="ico"><use href="#i-arrow"/></svg></div>
+    <div class="fstep r-actions"><span class="fi"><svg class="ico sm"><use href="#i-cloud"/></svg>шаг</span><span class="ft">Будим сервис</span><span class="fs">бесплатный хостинг засыпает</span></div>
+    <div class="farrow"><svg class="ico"><use href="#i-arrow"/></svg></div>
+    <div class="fstep r-actions"><span class="fi"><svg class="ico sm"><use href="#i-pulse"/></svg>шаг</span><span class="ft">Lighthouse</span><span class="fs">отчёт о главной странице</span></div>
+    <div class="farrow"><svg class="ico"><use href="#i-arrow"/></svg></div>
+    <div class="fstep r-actions"><span class="fi"><svg class="ico sm"><use href="#i-list"/></svg>шаг</span><span class="ft">Сводка находок</span><span class="fs">доступность, лучшие практики, SEO</span></div>
+    <div class="farrow"><svg class="ico"><use href="#i-arrow"/></svg></div>
+    <div class="fstep r-opencode" style="border-color:var(--opencode)"><span class="fi"><svg class="ico sm"><use href="#i-bot"/></svg>агент</span><span class="ft">Аудитор</span><span class="fs">ищет задачу по идентификатору находки</span></div>
+  </div>
+
+  <div class="stack" style="gap:8px">
+    <h3 class="h3" style="margin:0">Что агент делает с каждой находкой</h3>
+    <div class="cases">
+      <div class="case"><span class="cw">Задачи ещё нет</span><svg class="ico"><use href="#i-arrow"/></svg><span class="co"><b>Создаёт задачу:</b> проблема, предлагаемое действие, связь с отчётом и ссылка на прогон.</span></div>
+      <div class="case"><span class="cw">Закрыта как выполненная</span><svg class="ico"><use href="#i-arrow"/></svg><span class="co"><b>Проблема вернулась:</b> новая задача со ссылкой на прежнюю.</span></div>
+      <div class="case"><span class="cw">Задача уже открыта</span><svg class="ico"><use href="#i-arrow"/></svg><span class="co"><b>Ничего:</b> ни новой задачи, ни повторного комментария.</span></div>
+      <div class="case"><span class="cw">Закрыта «не планируется»</span><svg class="ico"><use href="#i-arrow"/></svg><span class="co"><b>Ничего:</b> человек уже отказался её брать.</span></div>
+      <div class="case"><span class="cw">Данных нет</span><svg class="ico"><use href="#i-arrow"/></svg><span class="co"><b>Ничего не создаёт и не закрывает:</b> молчание сервиса не значит, что проблема исправлена.</span></div>
+      <div class="case"><span class="cw">Любой исход</span><svg class="ico"><use href="#i-arrow"/></svg><span class="co"><b>Запись в журнал #25:</b> вывод последнего прогона хранится дольше артефакта.</span></div>
+    </div>
+  </div>
+
+  <div class="audit2">
+    <div class="stack" style="gap:8px">
+      <h3 class="h3" style="margin:0">Оценки Lighthouse в пяти запусках</h3>
+      <div class="sc" data-scores role="img" aria-label="Оценка скорости в пяти запусках: 0,80, 0,98, 0,94, 0,96, 0,95. Доступность 0,95, лучшие практики 1,00 и SEO 0,90 не менялись"></div>
+    </div>
+    <div class="fate">
+      <h3 class="h3" style="margin:0 0 2px">Судьба пяти задач первого запуска</h3>
+      <div class="fr"><span class="dn">#17</span><span>Недостаточный контраст текста</span><span class="chip">открыта</span></div>
+      <div class="fr"><span class="dn">#19</span><span>Нет meta description</span><span class="chip">открыта</span></div>
+      <div class="fr"><span class="dn">#18</span><span>Задержка первого ввода</span><span class="chip soft">шум раннера</span></div>
+      <div class="fr"><span class="dn">#20</span><span>Цепочки сетевых запросов</span><span class="chip soft">шум раннера</span></div>
+      <div class="fr"><span class="dn">#21</span><span>Время блокировки потока</span><span class="chip soft">шум раннера</span></div>
+      <p><b>Скорость скачет от 0,80 до 0,98</b> для одной и той же страницы: замер зависит от загрузки общего раннера. Три задачи закрыты как «не планируется», замеры скорости убраны из находок. Оценка осталась в отчёте.</p>
+    </div>
+  </div>
+
+  <div class="keep">
+    <div><svg class="ico"><use href="#i-check"/></svg><span><b>Дублей нет</b>Запуски со второго по пятый нашли те же находки и не создали ни одной новой задачи.</span></div>
+    <div><svg class="ico"><use href="#i-key"/></svg><span><b>Узкие права</b>Аудитору разрешены три команды: список задач, просмотр задачи, создание задачи.</span></div>
+    <div><svg class="ico"><use href="#i-user"/></svg><span><b>Решает человек</b>Задача аудита это входящее обращение. Брать ли её в работу, решает владелец.</span></div>
+  </div>
+</section></div>
+
+<section class="part" id="part-3">
+  <div class="eyebrow">Часть 3 · итоги</div>
+  <h2>Числа, грабли и дорожная карта</h2>
+  <p>Что получилось в сумме, что сломалось по дороге и что осталось открытым.</p>
+</section>
+
+<style>
+.act { display: grid; grid-template-columns: 236px 1fr 34px; gap: 8px 12px; align-items: center; }
+.act .an { display: flex; flex-direction: column; line-height: 1.25; }
+.act .an code { font: 600 12.5px/1.3 var(--f-mono); }
+.act .an small { font-size: 11.5px; color: var(--ink-2); }
+.act .ab { display: flex; gap: 2px; height: 22px; }
+.act .ab i { font: 600 11px/22px var(--f-mono); font-style: normal; text-align: center; border-radius: 3px; min-width: 6px; }
+.act .ab .d { background: var(--ink); color: var(--plate); }
+.act .ab .s { background: var(--panel-2); color: var(--ink); }
+.act .ab .r { background: var(--bad); color: #fff; }
+.act .av { font: 600 12.5px/1 var(--f-mono); text-align: right; }
+.alegend { display: flex; gap: 18px; font-size: 12px; color: var(--ink-2); flex-wrap: wrap; }
+.alegend span { display: inline-flex; align-items: center; gap: 7px; }
+.alegend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.trk { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
+.trk h3 { font: 600 15px/1.3 var(--f-text); margin: 0 0 8px; }
+.tk { display: grid; grid-template-columns: 96px 1fr 30px; gap: 7px 10px; align-items: center; font-size: 12.5px; }
+.tk .kb { display: flex; gap: 2px; height: 22px; }
+.tk .kb i { font: 600 11px/22px var(--f-mono); font-style: normal; text-align: center; border-radius: 3px; background: color-mix(in srgb, var(--ink) var(--t, 100%), var(--plate)); color: var(--plate); }
+.tk .kb i.lt { color: var(--ink); }
+.tk .kv { font: 600 12.5px/1 var(--f-mono); text-align: right; }
+.tk-cap { font-size: 12px; line-height: 1.5; color: var(--ink-2); margin: 8px 0 0; }
+.tk-cap b { color: var(--ink); font-weight: 600; }
+.cnt { display: grid; grid-template-columns: 68px 1fr; gap: 8px; align-items: start; margin-bottom: 8px; }
+.cnt > div { display: flex; flex-wrap: wrap; gap: 6px; }
+.cnt .cl { font-size: 12.5px; padding-top: 7px; }
+.cnt .cc { display: inline-flex; align-items: baseline; gap: 6px; border: 1px solid var(--line); border-radius: 9px; padding: 5px 9px; font-size: 12px; color: var(--ink-2); }
+.cnt .cc b { font: 600 14px/1 var(--f-display); color: var(--ink); }
+</style>
+<div class="plate-wrap"><section class="plate" id="p-numbers" data-name="16-numbers" aria-label="Числа: прогоны GitHub Actions по воркфлоу, задачи и коммиты по авторам">
+  <header class="ph">
+    <div class="tag"><b>Числа</b><span>·</span><span>история GitHub на 23:44 МСК 27.11.2026</span></div>
+    <h2>219 прогонов, ни одного красного в основной ветке</h2>
+    <p class="lede">Оба красных прогона за вечер сделаны нарочно на учебных ветках, чтобы доказать, что тесты умеют падать. Большая часть «пустых» запусков это фильтр, который отсекает комментарии без команды агенту.</p>
+  </header>
+
+  <div class="stack" style="gap:12px">
+    <div class="loc-head"><h3>Прогоны в репозитории проекта 2 по воркфлоу, всего 195</h3><div class="alegend"><span><i style="background:var(--ink)"></i>выполнен</span><span><i style="background:var(--bad)"></i>красный нарочно</span><span><i style="background:var(--panel-2)"></i>не понадобился</span></div></div>
+    <div class="act">
+      <span class="an"><code>opencode</code><small>команды в комментариях</small></span><div class="ab" style="width:100.0%"><i class="d" style="flex:11">11</i><i class="s" style="flex:29">29</i></div><span class="av">40</span>
+      <span class="an"><code>hexlet-check</code><small>автопроверка курса</small></span><div class="ab" style="width:97.5%"><i class="d" style="flex:39">39</i></div><span class="av">39</span>
+      <span class="an"><code>ci</code><small>все проверки проекта</small></span><div class="ab" style="width:87.5%"><i class="d" style="flex:33">33</i><i class="r" style="flex:2"></i></div><span class="av">35</span>
+      <span class="an"><code>opencode-review</code><small>независимое ревью</small></span><div class="ab" style="width:55.0%"><i class="d" style="flex:15">15</i><i class="s" style="flex:7">7</i></div><span class="av">22</span>
+      <span class="an"><code>pr-browser-check</code><small>браузер на коммите PR</small></span><div class="ab" style="width:55.0%"><i class="d" style="flex:18">18</i><i class="s" style="flex:4">4</i></div><span class="av">22</span>
+      <span class="an"><code>pr-commits</code><small>формат коммитов</small></span><div class="ab" style="width:47.5%"><i class="d" style="flex:15">15</i><i class="s" style="flex:4">4</i></div><span class="av">19</span>
+      <span class="an"><code>release-please</code><small>release-PR</small></span><div class="ab" style="width:27.5%"><i class="d" style="flex:11">11</i></div><span class="av">11</span>
+      <span class="an"><code>opencode-audit</code><small>аудит по расписанию</small></span><div class="ab" style="width:12.5%"><i class="d" style="flex:5">5</i></div><span class="av">5</span>
+      <span class="an"><code>opencode-triage</code><small>разбор новых обращений</small></span><div class="ab" style="width:5.0%"><i class="d" style="flex:1"></i><i class="s" style="flex:1"></i></div><span class="av">2</span>
+    </div>
+    <p class="tk-cap"><b>«Не понадобился»</b> значит, что воркфлоу проснулся и сам решил не работать: в комментарии нет команды, новый коммит вытеснил идущее ревью, pull request открыл бот релизов. В репозитории проекта 1 ещё 24 прогона, все зелёные: 12 автопроверок, 8 запусков <span class="mono">ci</span>, 4 запуска release-please.</p>
+  </div>
+
+  <div class="trk">
+    <div>
+      <h3>Что лежит в трекерах: 36 задач</h3>
+      <div class="cnt"><span class="cl">Проект 1</span><div><span class="cc"><b>1</b>карта решений</span><span class="cc"><b>10</b>вопросов</span><span class="cc"><b>1</b>спецификация</span><span class="cc"><b>9</b>тикетов</span></div></div>
+      <div class="cnt"><span class="cl">Проект 2</span><div><span class="cc"><b>2</b>обращения</span><span class="cc"><b>1</b>спецификация</span><span class="cc"><b>4</b>тикета</span><span class="cc"><b>5</b>задач аудита</span><span class="cc"><b>3</b>служебные</span></div></div>
+      <p class="tk-cap">Служебные задачи второго проекта: журнал аудита и две проверки настроек агента. Открытыми остались четыре: два обращения аудита, одно обращение пользователя и журнал.</p>
+    </div>
+    <div>
+      <h3>Кто автор 53 коммитов</h3>
+      <div class="tk">
+        <span>Claude Code</span><div class="kb"><i style="flex:40;background:var(--claude)">40</i></div><span class="kv"></span>
+        <span>OpenCode</span><div class="kb" style="width:17.5%"><i style="flex:7;background:var(--opencode)">7</i></div><span class="kv"></span>
+        <span>Хекслет</span><div class="kb" style="width:15%"><i style="flex:6;background:var(--hexlet)">6</i></div><span class="kv"></span>
+      </div>
+      <p class="tk-cap">Шесть коммитов Хекслета это заготовки репозиториев: README и файл автопроверки. <b>Pull request:</b> 10 открыл Claude Code, 1 агент OpenCode, 2 бот релизов.</p>
+    </div>
+  </div>
+</section></div>
+
+<style>
+.rakes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.rake { border: 1px solid var(--line); border-radius: 14px; padding: 14px 15px 13px; display: flex; flex-direction: column; gap: 7px; }
+.rake .rt { font: 500 10.5px/1.3 var(--f-mono); letter-spacing: .07em; text-transform: uppercase; color: var(--ink-2); }
+.rake b { font: 600 14px/1.3 var(--f-text); }
+.rake p { margin: 0; font-size: 12.5px; line-height: 1.43; color: var(--ink-2); }
+.rake .fx { margin-top: auto; display: grid; grid-template-columns: 16px 1fr; gap: 8px; font-size: 12.5px; line-height: 1.43; background: var(--good-bg); border-radius: 9px; padding: 8px 10px; color: var(--ink); }
+.rake .fx .ico { width: 14px; height: 14px; color: var(--good); margin-top: 2px; stroke-width: 2.4; }
+</style>
+<div class="plate-wrap"><section class="plate" id="p-rakes" data-name="17-lessons" aria-label="Что сломалось по дороге и что после этого изменили">
+  <header class="ph">
+    <div class="tag"><b>Грабли</b><span>·</span><span>двенадцать поломок и что после них изменилось</span></div>
+    <h2>Что пошло не так и как это исправили</h2>
+    <p class="lede">Ни один из двух проектов не прошёл гладко. Ниже всё, что сломалось по дороге, включая ошибку самого ведущего агента. Каждая поломка закончилась правкой кода, настроек или правил, а не обходом.</p>
+  </header>
+
+  <div class="rakes">
+    <div class="rake"><span class="rt">проект 1 · окружение</span><b>Менеджер пакетов не скачал GitHub CLI</b><p>Реестр готовых сборок недоступен из сети владельца, без CLI нельзя ни пушить, ни заводить задачи.</p><div class="fx"><svg class="ico"><use href="#i-check"/></svg><span>gh и mise поставлены с GitHub Releases после сверки контрольных сумм.</span></div></div>
+    <div class="rake"><span class="rt">проект 1 · политика</span><b>Агент не может поставить скиллы сам себе</b><p>Установщик меняет конфигурацию агента. Это запрещено даже после прямой просьбы владельца.</p><div class="fx"><svg class="ico"><use href="#i-check"/></svg><span>Одну команду установки ввёл человек.</span></div></div>
+    <div class="rake"><span class="rt">проект 1 · зависимости</span><b>Генератор SDK падает на TypeScript 7</b><p>Он использует прежний API компилятора, которого в новой версии нет.</p><div class="fx"><svg class="ico"><use href="#i-check"/></svg><span>Версия закреплена на TypeScript 6, причина записана в ADR 0007.</span></div></div>
+
+    <div class="rake"><span class="rt">проект 2 · запуск агента</span><b>Первый запуск упал до вызова модели</b><p>Готовый action узнаёт версию OpenCode анонимным запросом к GitHub API и получил отказ по лимиту.</p><div class="fx"><svg class="ico"><use href="#i-check"/></svg><span>OpenCode ставится закреплённой версией из npm.</span></div></div>
+    <div class="rake"><span class="rt">проект 2 · секреты</span><b>Ключ модели был доступен правилам из PR</b><p>Ревьюер читал настройки из проверяемой ветки. PR мог расширить ему права рядом с ключом.</p><div class="fx"><svg class="ico"><use href="#i-check"/></svg><span>Настройки берутся из базовой ветки, код PR лежит отдельно как данные.</span></div></div>
+    <div class="rake"><span class="rt">проект 2 · предел</span><b>Предел запусков можно было обойти</b><p>Повтор старого прогона не считался, а скрипт счёта выполнялся из версии pull request.</p><div class="fx"><svg class="ico"><use href="#i-check"/></svg><span>Считаются все прогоны по истории Actions, скрипт берётся из основной ветки.</span></div></div>
+
+    <div class="rake"><span class="rt">проект 2 · git</span><b>Хуки отклонили бы коммит агента</b><p>Служебный коммит OpenCode с произвольным текстом не прошёл бы проверку формата, и работа запуска пропала бы.</p><div class="fx"><svg class="ico"><use href="#i-check"/></svg><span>Хуки на раннере выключены, формат проверяет отдельный воркфлоу.</span></div></div>
+    <div class="rake"><span class="rt">проект 2 · скиллы</span><b>Скилл хотел сам создать ветку и PR</b><p>В GitHub это делает OpenCode. Два хозяина ветки оставили бы работу без pull request.</p><div class="fx"><svg class="ico"><use href="#i-check"/></svg><span>В AGENTS.md правило: работать в текущей ветке, PR откроет OpenCode.</span></div></div>
+    <div class="rake"><span class="rt">проект 2 · команды</span><b>Обычная фраза разбудила агента</b><p>Команда сработала из середины комментария, где её упомянули в тексте. Запуск съел бюджет.</p><div class="fx"><svg class="ico"><use href="#i-check"/></svg><span>Команду пишут, только когда агента действительно зовут.</span></div></div>
+
+    <div class="rake"><span class="rt">проект 2 · ревью</span><b>Ревью пропустило ошибку в ссылке</b><p>Номер попадал в адрес <span class="mono">tel:</span> с пробелами. В критериях ревью такого класса ошибок не было.</p><div class="fx"><svg class="ico"><use href="#i-check"/></svg><span>Регрессионный тест и новый критерий в REVIEW.md.</span></div></div>
+    <div class="rake"><span class="rt">проект 2 · аудит</span><b>Аудит завёл три задачи по шуму</b><p>Оценка скорости на общем раннере была 0,80, а через шесть минут 0,98 для той же страницы.</p><div class="fx"><svg class="ico"><use href="#i-check"/></svg><span>Замеры скорости убраны из находок, отклонённые задачи не заводятся заново.</span></div></div>
+    <div class="rake"><span class="rt">проект 2 · ведущий агент</span><b>«Исправлено» раньше исправления</b><p>Скрипт правки README не применился, а комментарий об исправлении Claude Code уже отправил.</p><div class="fx"><svg class="ico"><use href="#i-check"/></svg><span>Правка внесена следом, комментарий уточнён. Ревью сверило текст с историей прогонов.</span></div></div>
+  </div>
+</section></div>
+
+<style>
+.road { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; align-items: start; }
+.rcol { border-radius: 16px; padding: 16px 16px 14px; display: flex; flex-direction: column; gap: 10px; }
+.rcol.done { background: var(--good-bg); }
+.rcol.open { background: var(--warn-bg); }
+.rcol.next { background: var(--panel); }
+.rcol h3 { font: 600 17px/1.2 var(--f-display); letter-spacing: -.01em; margin: 0; display: flex; align-items: center; gap: 9px; }
+.rcol.done h3 .ico { color: var(--good); }
+.rcol.open h3 .ico { color: var(--warn); }
+.rcol .rsub { font-size: 12px; color: var(--ink-2); margin: -6px 0 2px; }
+.ri { background: var(--plate); border-radius: 10px; padding: 9px 11px; font-size: 12.5px; line-height: 1.42; color: var(--ink-2); display: flex; flex-direction: column; gap: 2px; }
+.ri b { color: var(--ink); font-weight: 600; font-size: 13px; }
+.limits { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; }
+.lim { display: grid; grid-template-columns: 22px 1fr; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line-2); font-size: 12.5px; line-height: 1.45; color: var(--ink-2); }
+.lim b { display: block; color: var(--ink); font-weight: 600; font-size: 13.5px; }
+.lim .ico { color: var(--ink-2); margin-top: 1px; }
+</style>
+<div class="plate-wrap"><section class="plate" id="p-roadmap" data-name="18-roadmap" aria-label="Дорожная карта: что сделано, что открыто, что дальше, и ограничения результата">
+  <header class="ph">
+    <div class="tag"><b>Дорожная карта</b><span>·</span><span>состояние на конец вечера и следующие шаги</span></div>
+    <h2>Что сделано, что открыто и чего здесь нет</h2>
+    <p class="lede">Оба проекта сданы на автопроверку и ждут ревью наставника. Это учебный сервис: часть ограничений заложена условиями курса, часть осталась как осознанный долг.</p>
+  </header>
+
+  <div class="road">
+    <div class="rcol done">
+      <h3><svg class="ico"><use href="#i-check"/></svg>Сделано</h3>
+      <p class="rsub">подтверждено прогонами и статусом курса</p>
+      <div class="ri"><b>12 шагов из 12</b>Проект 1: 7 из 7. Проект 2: 5 из 5. Обе автопроверки зелёные.</div>
+      <div class="ri"><b>Приложение опубликовано</b>Запись на звонок с правилами занятости, 8 операций API, Docker-образ, сервис на Render.</div>
+      <div class="ri"><b>Конвейер в GitHub работает</b>Разбор обращений, реализация по команде, ревью каждой версии, браузерная проверка, ежедневный аудит.</div>
+      <div class="ri"><b>Доработка прошла весь путь</b>Телефон гостя: от жалобы владельца до мержа pull request агента за полтора часа.</div>
+    </div>
+    <div class="rcol open">
+      <h3><svg class="ico"><use href="#i-clock"/></svg>Открыто</h3>
+      <p class="rsub">ждёт решения человека</p>
+      <div class="ri"><b>Ревью наставника</b>Содержание проектов смотрит человек: автопроверка знает только про сборку и главную страницу.</div>
+      <div class="ri"><b>#12 Встреча в свой календарь</b>Обращение разобрано автоматически, агент ждёт ответов на вопросы.</div>
+      <div class="ri"><b>#17 и #19 Находки аудита</b>Контраст текста и отсутствие meta description. Обе настоящие, обе мелкие.</div>
+      <div class="ri"><b>Релиз 1.0.0</b>release-PR готов в обоих репозиториях. Мерж опубликует релиз, поэтому решение оставлено владельцу.</div>
+    </div>
+    <div class="rcol next">
+      <h3><svg class="ico"><use href="#i-flag"/></svg>Дальше</h3>
+      <p class="rsub">если развивать после курса</p>
+      <div class="ri"><b>Выкатить версию с телефоном</b>И заменить ручной деплой автоматическим после зелёного main.</div>
+      <div class="ri"><b>База данных вместо памяти</b>Проверка занятости переедет в транзакцию или ограничение базы.</div>
+      <div class="ri"><b>Вход в админку</b>Сейчас список встреч с контактами гостей открыт по ссылке.</div>
+      <div class="ri"><b>Больше сигналов для аудита</b>Ошибки и метрики работающего приложения, а не только отчёт о странице.</div>
+    </div>
+  </div>
+
+  <div class="stack" style="gap:6px">
+    <h3 class="h3" style="margin:0">Оговорки, без которых картина неполная</h3>
+    <div class="limits">
+      <div class="lim"><svg class="ico"><use href="#i-db"/></svg><span><b>Данные живут в памяти</b>Перезапуск или новый деплой стирает записи и созданные типы встреч. На бесплатном тарифе сервис засыпает после простоя.</span></div>
+      <div class="lim"><svg class="ico"><use href="#i-user"/></svg><span><b>Решения владельца принимал агент</b>Ответы на вопросы разбора, согласования и мержи сделал Claude Code по поручению. Человек отвечал только ему.</span></div>
+      <div class="lim"><svg class="ico"><use href="#i-lock"/></svg><span><b>Авторизации нет</b>Так задано условиями курса. Поэтому телефоны гостей видны любому, кто знает адрес админки.</span></div>
+      <div class="lim"><svg class="ico"><use href="#i-doc"/></svg><span><b>Трекер первого проекта заполнен после кода</b>Решения записаны по работающему прототипу, а не до него. Скиллы применялись как порядок работы, без слэш-команд.</span></div>
+      <div class="lim"><svg class="ico"><use href="#i-cloud"/></svg><span><b>Опубликована версия первого проекта</b>Телефон гостя есть в коде репозитория 387, но на Render выкачен код из репозитория 386.</span></div>
+      <div class="lim"><svg class="ico"><use href="#i-bot"/></svg><span><b>У агента в GitHub одна модель</b>Весь цикл прошёл на deepseek-v4.1-flash. Более сильные модели в рабочем пространстве курса отключены.</span></div>
+    </div>
+  </div>
+</section></div>
+
+<style>
+.faq { display: flex; flex-direction: column; gap: 14px; padding-top: 28px; border-top: 1px solid var(--line); }
+.faq h2 { font: 600 clamp(20px, 3.6vw, 26px)/1.2 var(--f-display); margin: 0; }
+.faq-list { display: flex; flex-direction: column; }
+.faq details { border-top: 1px solid var(--line-2); padding: 12px 0; }
+.faq summary { cursor: pointer; font-weight: 600; font-size: 15.5px; line-height: 1.4; }
+.faq details p { margin: 8px 0 0; color: var(--ink-2); max-width: 72ch; }
+.faq details p b { color: var(--ink); font-weight: 600; }
+.links { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px; }
+.links a { display: flex; flex-direction: column; gap: 3px; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; text-decoration: none; color: var(--ink); }
+.links a:hover { background: var(--panel); }
+.links a b { font-weight: 600; font-size: 14px; }
+.links a span { font: 500 11.5px/1.4 var(--f-mono); color: var(--ink-2); overflow-wrap: anywhere; }
+</style>
+<section class="faq" id="faq">
+  <h2>Короткие ответы</h2>
+  <div class="faq-list">
+    <details open><summary>Это один репозиторий или два?</summary><p>Два. В <b>ai-for-developers-project-386</b> лежит приложение первого проекта. В <b>ai-for-developers-project-387</b> лежит то же приложение и агентный процесс второго проекта: код перенесён одним коммитом, дальше репозитории живут раздельно.</p></details>
+    <details><summary>Что делает приложение?</summary><p>Владелец календаря заводит типы встреч с длительностью. Гость без регистрации выбирает тип, день из ближайших 14 и свободный слот, оставляет имя, email и по желанию телефон. Занятое время закрывается для всех типов встреч, владелец видит записи одним списком.</p></details>
+    <details><summary>Кто писал код?</summary><p>Приложение первого проекта, воркфлоу и документацию второго написал <b>Claude Code</b>. Доработку «телефон гостя» во втором проекте от разбора до кода сделал <b>OpenCode</b> в GitHub Actions: 7 коммитов из 53.</p></details>
+    <details><summary>Что делал человек?</summary><p>Поставил две цели, каждую одной фразой, ответил на 11 вопросов и ввёл 2 команды в терминале. Вопросы были о доступах и окружении: как установить GitHub CLI и mise, как войти в GitHub и Render, кто установит скиллы, можно ли менять настройки репозитория, где взять ключ модели. Решения по продукту и коду человек не принимал.</p></details>
+    <details><summary>Сколько это заняло?</summary><p>4 часа 05 минут от первой цели до зелёной автопроверки второго проекта: 1 час 33 минуты на первый проект и 2 часа 30 минут на второй.</p></details>
+    <details><summary>Какие модели работали?</summary><p>Claude Code работал на Claude Fable 5.2. Агент OpenCode в GitHub работал на opencode/deepseek-v4.1-flash с ключа рабочего пространства курса с лимитом 20 долларов. Фактический расход в этот отчёт не входит: он виден в консоли OpenCode.</p></details>
+    <details><summary>Как позвать агента в GitHub?</summary><p>Написать комментарий с командой <b>/oc</b> или <b>/opencode</b> в issue, в pull request или к строке diff. Команду принимают только от владельца и соавторов репозитория. В issue агент создаст ветку и откроет pull request, в pull request закоммитит в его ветку.</p></details>
+    <details><summary>Может ли агент сам влить код в основную ветку?</summary><p>Нет. Агент открывает pull request. Основная ветка защищена обязательной проверкой, а решение о мерже записывает и принимает владелец.</p></details>
+    <details><summary>Что будет, если агент зациклится или зависнет?</summary><p>На один pull request разрешено четыре запуска, пятый отклоняется до вызова модели. Один запуск живёт не дольше 60 минут. В обоих случаях в обсуждении появляется комментарий с причиной и ссылкой на логи.</p></details>
+    <details><summary>Зачем ревью, если его делает тот же агент?</summary><p>Это отдельный запуск без контекста автора и без права править файлы, с критериями из базовой ветки. Он нашёл серьёзные ошибки в правилах самого конвейера, включая доступ проверяемого кода к ключу модели. Человека он не заменяет: ошибку в адресе ссылки для звонка ревью пропустило.</p></details>
+    <details><summary>Где хранятся данные и можно ли этим пользоваться всерьёз?</summary><p>Записи живут в памяти процесса и пропадают при перезапуске, входа в админку нет. Это условия учебного проекта. Для настоящей работы нужны база данных и авторизация, обе стоят в дорожной карте.</p></details>
+    <details><summary>Что осталось сделать?</summary><p>Дождаться ревью наставника. Решить судьбу трёх открытых задач: обращения про добавление встречи в свой календарь и двух находок аудита. Влить или закрыть release-PR версии 1.0.0 в обоих репозиториях.</p></details>
+  </div>
+  <div class="links">
+    <a href="https://github.com/andreykolomensky-prog/ai-for-developers-project-386"><b>Репозиторий проекта 1</b><span>github.com/…/ai-for-developers-project-386</span></a>
+    <a href="https://github.com/andreykolomensky-prog/ai-for-developers-project-387"><b>Репозиторий проекта 2</b><span>github.com/…/ai-for-developers-project-387</span></a>
+    <a href="https://ai-for-developers-project-386-piq5.onrender.com"><b>Опубликованный сервис</b><span>первый запрос после паузы идёт до минуты</span></a>
+    <a href="https://github.com/andreykolomensky-prog/ai-for-developers-project-387/issues/4"><b>Обращение #4</b><span>разбор агента, вопросы и согласование</span></a>
+    <a href="https://github.com/andreykolomensky-prog/ai-for-developers-project-387/pull/16"><b>Pull request #16</b><span>работа агента, ревью и решение о мерже</span></a>
+    <a href="https://github.com/andreykolomensky-prog/ai-for-developers-project-387/issues/25"><b>Журнал аудита #25</b><span>вывод последнего ежедневного прогона</span></a>
+  </div>
+</section>
+
+</main>
+
+<script>
+(() => {
+  const NS = 'http://www.w3.org/2000/svg'
+  const T = (s) => { const [h, m] = s.split(':').map(Number); return h * 60 + m }
+  const el = (name, attrs = {}, text) => {
+    const n = document.createElementNS(NS, name)
+    for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v)
+    if (text != null) n.textContent = text
+    return n
+  }
+  const tip = (node, text) => { node.append(el('title', {}, text)); return node }
+  const css = (name) => `var(--${name})`
+
+  // Участие человека за вечер, московское время.
+  const HUMAN = [
+    ['19:38', 'цель: проект 1'], ['19:41', 'команда в терминале: brew install gh'], ['19:42', 'ответ: как поставить gh'],
+    ['19:46', 'ответ: ставить mise'], ['20:33', '2 ответа: вход в GitHub, установка скиллов'], ['20:47', '3 ответа: скиллы, настройка Actions, деплой'],
+    ['20:58', 'команда в терминале: установка скиллов, 1 ответ'], ['21:14', 'цель: проект 2'], ['21:18', '3 ответа: ключ модели, GitHub App, настройки репозитория'],
+  ]
+  // Раскладывает близкие отметки по двум рядам, чтобы они не слипались.
+  const rows = (xs, gap = 12) => {
+    const last = [-1e9, -1e9]
+    return xs.map((x) => { const r = x - last[0] >= gap ? 0 : x - last[1] >= gap ? 1 : 0; last[r] = x; return r })
+  }
+
+  // ——— линейка на обложке ———
+  const hero = document.querySelector('[data-ruler="hero"]')
+  if (hero) {
+    const W = 840, H = 122, L = 4, R = 836
+    const from = T('19:30'), to = T('23:50')
+    const x = (t) => L + ((T(t) - from) / (to - from)) * (R - L)
+    const svg = el('svg', { viewBox: `0 0 ${W} ${H}` })
+    svg.append(el('text', { x: L, y: 12, class: 'cap' }, 'участие человека: 2 цели, 11 ответов, 2 команды в терминале'))
+    const xs = HUMAN.map(([t]) => x(t)), rs = rows(xs)
+    HUMAN.forEach(([t, label], i) => {
+      const cy = rs[i] ? 29 : 42
+      svg.append(el('line', { x1: xs[i], y1: cy, x2: xs[i], y2: 56, stroke: css('human'), 'stroke-width': 1.5 }))
+      svg.append(tip(el('circle', { cx: xs[i], cy, r: 5, fill: css('human') }), `${t} · ${label}`))
+    })
+    for (const [a, b, label] of [['19:38', '21:11', 'Проект 1 · приложение'], ['21:14', '23:44', 'Проект 2 · агенты в GitHub']]) {
+      svg.append(el('rect', { x: x(a), y: 56, width: x(b) - x(a), height: 30, rx: 8, fill: css('ink') }))
+      svg.append(el('text', { x: x(a) + 14, y: 75.5, class: 'barlabel' }, label))
+    }
+    svg.append(el('line', { x1: L, y1: 98, x2: R, y2: 98, stroke: css('line'), 'stroke-width': 1 }))
+    for (const t of ['19:38', '20:00', '21:00', '22:00', '23:00', '23:44']) {
+      const edge = t === '19:38' || t === '23:44'
+      svg.append(el('line', { x1: x(t), y1: edge ? 90 : 94, x2: x(t), y2: 102, stroke: edge ? css('ink') : css('ink-3'), 'stroke-width': edge ? 1.5 : 1 }))
+      const tx = el('text', { x: x(t) + (t === '19:38' ? -2 : t === '23:44' ? 2 : 0), y: 118, 'text-anchor': t === '19:38' ? 'start' : t === '23:44' ? 'end' : 'middle' }, t)
+      if (edge) tx.setAttribute('style', 'fill: var(--ink); font-weight: 600')
+      svg.append(tx)
+    }
+    hero.append(svg)
+  }
+
+  // ——— вечер по минутам ———
+  const tl = document.querySelector('[data-timeline]')
+  if (tl) {
+    const W = 840, X0 = 138, X1 = 836
+    const from = T('19:30'), to = T('23:50')
+    const xm = (m) => X0 + ((m - from) / (to - from)) * (X1 - X0)
+    const x = (t) => xm(T(t))
+    const utc = (t) => T(t) + 180
+    const svg = el('svg', { viewBox: `0 0 ${W} 402` })
+    const lane = (y, name, color, sub) => {
+      if (color) svg.append(el('rect', { x: 0, y: y - 9, width: 10, height: 10, rx: 3, fill: css(color) }))
+      svg.append(el('text', { x: color ? 17 : 0, y, class: 'lane' }, name))
+      if (sub) svg.append(el('text', { x: 17, y: y + 15, class: 'sub' }, sub))
+    }
+    // сетка по получасам
+    for (let m = from; m <= to; m += 30) {
+      const hour = m % 60 === 0
+      svg.append(el('line', { x1: xm(m), y1: 8, x2: xm(m), y2: 372, stroke: css(hour ? 'line' : 'line-2'), 'stroke-width': 1 }))
+      svg.append(el('text', { x: xm(m), y: 390, class: 'axis', 'text-anchor': 'middle' }, `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`))
+    }
+    // проекты
+    lane(27, 'Проекты')
+    for (const [a, b, label] of [['19:38', '21:11', 'Проект 1 · 1 ч 33 мин'], ['21:14', '23:44', 'Проект 2 · 2 ч 30 мин']]) {
+      svg.append(el('rect', { x: x(a), y: 12, width: x(b) - x(a), height: 22, rx: 6, fill: css('panel-2') }))
+      svg.append(el('text', { x: x(a) + 10, y: 27, class: 'note', style: 'font-weight:600' }, label))
+    }
+    // человек
+    lane(62, 'Человек', 'human')
+    const xs = HUMAN.map(([t]) => x(t)), rs = rows(xs, 11)
+    HUMAN.forEach(([t, label], i) => svg.append(tip(el('circle', { cx: xs[i], cy: rs[i] ? 52 : 63, r: 4.5, fill: css('human') }), `${t} · ${label}`)))
+    // Claude Code
+    lane(97, 'Claude Code', 'claude')
+    const phases = [['19:38', '19:57'], ['19:57', '20:37'], ['20:37', '20:55'], ['20:56', '21:11'], ['21:16', '21:43'], ['21:44', '22:35'], ['22:36', '22:49'], ['22:50', '23:04'], ['23:05', '23:44']]
+    phases.forEach(([a, b], i) => {
+      const w = x(b) - x(a) - 2
+      svg.append(tip(el('rect', { x: x(a), y: 84, width: w, height: 22, rx: 5, fill: css('claude') }), `Фаза ${i + 1}: ${a}–${b}`))
+      svg.append(el('text', { x: x(a) + w / 2, y: 99, class: 'inbar', 'text-anchor': 'middle' }, String(i + 1)))
+    })
+    // OpenCode: настоящие запуски (время UTC из истории Actions, сдвиг +3 ч)
+    lane(134, 'OpenCode', 'opencode', '31 запуск с моделью')
+    const kinds = [
+      ['по команде', 172, [['18:28', '18:31', 'проверка подключения, #2'], ['18:33', '18:35', 'разбор обращения #4'], ['18:36', '18:38', 'спецификация #6'], ['18:39', '18:40', 'тикеты #7–#10'], ['19:35', '19:36', 'ответ в PR #14'], ['19:35', '19:39', 'реализация, PR #16'], ['19:50', '19:52', 'правка 1'], ['19:53', '19:55', 'правка 2'], ['19:56', '19:57', 'правка 3'], ['19:58', '20:01', 'сверка с критериями']]],
+      ['ревью', 192, [['18:57', 513], ['19:22', 343], ['19:30', 278], ['19:36', 310], ['19:39', 365], ['19:44', 269], ['19:52', 132], ['19:52', 95], ['19:58', 244], ['20:06', 313], ['20:14', 115], ['20:19', 326], ['20:28', 106], ['20:31', 102], ['20:35', 151]]],
+      ['аудит', 212, [['19:49', '19:51'], ['19:55', '19:56'], ['20:19', '20:20'], ['20:26', '20:27'], ['20:33', '20:34']]],
+      ['автотриаж', 232, [['18:43', '18:44']]],
+    ]
+    for (const [name, y, runs] of kinds) {
+      svg.append(el('text', { x: X0 - 8, y: y + 4, class: 'sub', 'text-anchor': 'end' }, `${name} · ${runs.length}`))
+      svg.append(el('line', { x1: X0, y1: y, x2: X1, y2: y, stroke: css('line-2'), 'stroke-width': 1 }))
+      for (const [a, b, label] of runs) {
+        const m0 = utc(a), m1 = typeof b === 'number' ? m0 + b / 60 : utc(b)
+        const w = Math.max(3.5, xm(m1) - xm(m0))
+        svg.append(tip(el('rect', { x: xm(m0), y: y - 6, width: w, height: 12, rx: 3, fill: css('opencode'), stroke: css('plate'), 'stroke-width': 1 }), `${name}${label ? ': ' + label : ''}, ${Math.round((m1 - m0) * 60)} с`))
+      }
+    }
+    // отказ по пределу запусков
+    const rx = xm(utc('20:02'))
+    svg.append(tip(el('path', { d: `M${rx + 3} ${166}l8 12M${rx + 11} ${166}l-8 12`, stroke: css('bad'), 'stroke-width': 2.2, 'stroke-linecap': 'round', fill: 'none' }), '23:02 · пятый вызов отклонён пределом, модель не запускалась'))
+    svg.append(el('text', { x: rx + 18, y: 176, class: 'note' }, 'отказ по пределу'))
+    // GitHub Actions: старты прогонов за 5 минут
+    lane(278, 'GitHub Actions', 'actions', '219 прогонов')
+    const bins = [[1175, 3], [1235, 2], [1240, 2], [1245, 2], [1250, 2], [1255, 6], [1260, 3], [1265, 4], [1275, 3], [1280, 3], [1285, 5], [1290, 9], [1295, 4], [1300, 11], [1315, 4], [1325, 5], [1335, 4], [1340, 5], [1350, 6], [1355, 20], [1360, 6], [1365, 8], [1370, 18], [1375, 24], [1380, 9], [1385, 5], [1390, 7], [1395, 9], [1405, 9], [1410, 11], [1415, 9], [1420, 1]]
+    const base = 326, kH = 60 / 24, bw = xm(5) - xm(0)
+    svg.append(el('line', { x1: X0, y1: base, x2: X1, y2: base, stroke: css('line'), 'stroke-width': 1 }))
+    for (const [m, n] of bins) {
+      const h = n * kH
+      svg.append(tip(el('rect', { x: xm(m) + 1, y: base - h, width: bw - 2, height: h, rx: 2, fill: css('actions') }), `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')} · стартовало прогонов: ${n}`))
+    }
+    svg.append(el('text', { x: xm(1375) + bw / 2, y: base - 24 * kH - 6, class: 'note', 'text-anchor': 'middle' }, '24 за 5 минут'))
+    // Хекслет
+    lane(354, 'Хекслет', 'hexlet')
+    for (const [t, label] of [['21:11', 'проект 1 сдан'], ['23:44', 'проект 2 сдан']]) {
+      svg.append(el('circle', { cx: x(t), cy: 350, r: 8, fill: css('good-bg') }))
+      svg.append(el('path', { d: `M${x(t) - 3.6} ${350.4}l2.6 2.6 4.8-5.2`, stroke: css('good'), 'stroke-width': 2, fill: 'none', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }))
+      svg.append(el('text', { x: x(t) - 13, y: 354, class: 'note', 'text-anchor': 'end' }, label))
+    }
+    tl.append(svg)
+  }
+
+  // ——— оценки Lighthouse: скорость выделена, остальные серии приглушены ———
+  const sc = document.querySelector('[data-scores]')
+  if (sc) {
+    const W = 430, H = 214, X0 = 34, X1 = 318, Y0 = 26, Y1 = 170
+    const runs = ['22:49', '22:55', '23:19', '23:26', '23:33']
+    const perf = [0.80, 0.98, 0.94, 0.96, 0.95]
+    const flat = [['лучшие практики 1,00', 1.0], ['доступность 0,95', 0.95], ['SEO 0,90', 0.90]]
+    const xi = (i) => X0 + (i / (runs.length - 1)) * (X1 - X0)
+    const y = (v) => Y1 - ((v - 0.75) / 0.25) * (Y1 - Y0)
+    const svg = el('svg', { viewBox: `0 0 ${W} ${H}` })
+    for (const v of [0.8, 0.9, 1.0]) {
+      svg.append(el('line', { x1: X0, y1: y(v), x2: X1, y2: y(v), stroke: css('line-2'), 'stroke-width': 1 }))
+      svg.append(el('text', { x: X0 - 8, y: y(v) + 4, class: 'ax', 'text-anchor': 'end' }, v.toFixed(1).replace('.', ',')))
+    }
+    runs.forEach((t, i) => svg.append(el('text', { x: xi(i), y: Y1 + 22, class: 'ax', 'text-anchor': 'middle' }, t)))
+    svg.append(el('text', { x: X0, y: Y1 + 40, class: 'ax' }, 'время запуска, МСК'))
+    for (const [label, v] of flat) {
+      svg.append(el('line', { x1: X0, y1: y(v), x2: X1, y2: y(v), stroke: css('ink-3'), 'stroke-width': 1.5 }))
+      svg.append(el('text', { x: X1 + 10, y: y(v) + 4 }, label))
+    }
+    svg.append(el('polyline', { points: perf.map((v, i) => `${xi(i)},${y(v)}`).join(' '), fill: 'none', stroke: css('ink'), 'stroke-width': 2.5, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }))
+    perf.forEach((v, i) => {
+      svg.append(tip(el('circle', { cx: xi(i), cy: y(v), r: 5, fill: css('ink'), stroke: css('plate'), 'stroke-width': 2 }), `${runs[i]} · скорость ${String(v.toFixed(2)).replace('.', ',')}`))
+    })
+    svg.append(el('text', { x: xi(0) + 10, y: y(0.80) + 4, class: 'em' }, 'скорость 0,80'))
+    svg.append(el('text', { x: xi(1), y: y(0.98) - 10, class: 'em', 'text-anchor': 'middle' }, '0,98'))
+    sc.append(svg)
+  }
+
+  // Плита ведёт себя как картинка: на узком экране уменьшается целиком.
+  const fit = () => {
+    for (const wrap of document.querySelectorAll('.plate-wrap')) {
+      const plate = wrap.firstElementChild
+      const k = Math.min(1, wrap.clientWidth / 920)
+      plate.style.zoom = k < 1 ? String(k) : ''
+    }
+  }
+  fit()
+  addEventListener('resize', fit)
+})()
+</script>
+</body></html>
