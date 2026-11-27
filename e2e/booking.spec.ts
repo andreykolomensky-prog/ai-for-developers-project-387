@@ -63,6 +63,34 @@ test('гость записывается на свободный слот, вл
   await expect(page.getByRole('button', { name: /10:30–10:45/ })).toBeEnabled()
 })
 
+test('гость оставляет телефон, видит его в подтверждении, а владелец звонит по ссылке', async ({
+  page,
+}) => {
+  await openDay(page, 'Встреча 30 минут', 4)
+
+  const slot = page.getByRole('button', { name: /09:00–09:30/ })
+  await expect(slot).toContainText('Свободно')
+  await slot.click()
+  await page.getByRole('button', { name: 'Продолжить' }).click()
+  await page.getByLabel('Имя').fill('Гость с телефоном')
+  await page.getByLabel('Email').fill('phone@example.com')
+  await page.getByLabel('Телефон').fill('  +7 (999) 123-45-67  ')
+  await page.getByRole('button', { name: 'Записаться' }).click()
+
+  // Гость видит номер в подтверждении — без пробелов по краям.
+  await expect(page.getByRole('heading', { level: 1, name: 'Вы записаны' })).toBeVisible()
+  await expect(page.getByRole('main')).toContainText('+7 (999) 123-45-67')
+
+  // Владелец видит номер отдельной строкой как ссылку tel:.
+  await page.goto('/admin')
+  await expect(page.getByRole('heading', { level: 1, name: 'Предстоящие встречи' })).toBeVisible()
+  const booking = page.getByRole('listitem').filter({ hasText: 'Гость с телефоном' })
+  await expect(booking.getByRole('link', { name: '+7 (999) 123-45-67' })).toHaveAttribute(
+    'href',
+    'tel:+7 (999) 123-45-67',
+  )
+})
+
 test('если слот заняли, пока гость заполнял форму, он видит понятное сообщение и выбирает другое время', async ({
   page,
   request,
