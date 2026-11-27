@@ -83,7 +83,7 @@ jobs:
     if: needs.budget.outputs.allowed == 'true'
     runs-on: ubuntu-latest
     # Запас после остановки агента, чтобы задание успело записать причину.
-    timeout-minutes: 50
+    timeout-minutes: 70
     permissions:
       # Чтение кода. Комментарии, ветки и PR агент создаёт токеном приложения OpenCode,
       # который получает в обмен на OIDC-токен.
@@ -129,7 +129,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set +e
-          timeout --signal=TERM --kill-after=30s 40m opencode github run
+          timeout --signal=TERM --kill-after=30s 60m opencode github run
           code=$?
           set -e
           case "$code" in
