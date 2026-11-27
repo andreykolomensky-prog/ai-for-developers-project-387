@@ -89,7 +89,8 @@ type GuestDetails = {
 const fieldMessages: Record<keyof GuestDetails, string> = {
   guestName: 'Укажите имя',
   guestEmail: 'Укажите email в формате name@example.com',
-  guestPhone: 'Телефон должен содержать от 5 до 30 символов: цифры, +, пробелы, дефисы и скобки',
+  guestPhone:
+    'Телефон должен содержать от 5 до 30 символов, хотя бы одну цифру и состоять только из цифр, +, пробелов, дефисов и скобок',
   notes: 'Заметка слишком длинная',
 }
 

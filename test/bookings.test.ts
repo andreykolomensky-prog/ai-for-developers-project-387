@@ -279,6 +279,20 @@ describe('ошибки данных при создании записи', () =>
     expect(await slotAvailability('meeting-30', msk('2026-03-03', '10:00'))).toBe(true)
   })
 
+  test('сообщение для телефона без цифр упоминает хотя бы одну цифру', async () => {
+    const response = await server.api<ValidationError>('POST', '/api/bookings', {
+      eventTypeId: 'meeting-30',
+      startTime: msk('2026-03-03', '10:00'),
+      ...guest,
+      guestPhone: '+-+-+-',
+    })
+
+    expect(response.status).toBe(422)
+    expect(response.body.issues).toEqual([
+      { field: 'guestPhone', message: expect.stringMatching(/хотя бы одну цифру/i) as string },
+    ])
+  })
+
   test.each([
     ['повреждённый JSON', '{"eventTypeId":', 'application/json'],
     ['пустое тело', '', 'application/json'],
