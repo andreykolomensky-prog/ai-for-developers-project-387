@@ -13,20 +13,20 @@ set -euo pipefail
 : "${NUMBER:?номер issue или pull request}"
 : "${IS_PR:?true для pull request}"
 : "${LIMIT:?предел запусков на pull request}"
-: "${RUN_ID:?идентификатор текущего запуска}"
 
 title="opencode #${NUMBER}"
 
+# Берутся все запуски с этим номером, в том числе более новые, чем текущий:
+# иначе повтор старого запуска через Re-run не видел бы потраченных после него попыток.
 run_ids=$(
   gh api --paginate \
     "repos/${GITHUB_REPOSITORY}/actions/workflows/opencode.yml/runs?per_page=100" \
     --jq ".workflow_runs[]
           | select(.display_title == \"${title}\")
-          | select(.id <= ${RUN_ID})
           | .id"
 )
 
-# Текущая попытка: её задание budget ещё выполняется и в истории не завершено.
+# Текущая попытка: её задание budget ещё выполняется и в истории успешным не числится.
 used=1
 for run_id in $run_ids; do
   admitted=$(
