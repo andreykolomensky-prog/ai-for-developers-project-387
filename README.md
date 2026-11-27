@@ -348,9 +348,13 @@ Claude Code работал на Claude Fable 5.2. Агент OpenCode в GitHub 
 
 Локальный запуск той же версии, что лежит в репозитории:
 
-````bash
+```bash
 docker build -t call-calendar .
 docker run --rm -p 8080:8080 -e PORT=8080 call-calendar
+# приложение откроется на http://localhost:8080
+```
+
+Запуск без Docker описан в разделах «Установка» и «Использование».
 
 ## Справочник
 
@@ -567,7 +571,7 @@ cd ai-for-developers-project-387
 mise trust
 mise install      # ставит инструменты и подключает git-хуки
 mise run install  # ставит зависимости из package-lock.json
-````
+```
 
 ### Использование
 
