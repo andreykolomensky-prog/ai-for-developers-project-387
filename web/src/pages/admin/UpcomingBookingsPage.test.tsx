@@ -16,6 +16,7 @@ test('владелец видит встречи всех типов по дня
       endTime: '2026-03-03T07:30:00.000Z',
       guestName: 'Анна Гостева',
       guestEmail: 'anna@example.com',
+      guestPhone: '+7 (999) 123-45-67',
       notes: 'Обсудим запуск',
       createdAt: '2026-03-02T07:30:00.000Z',
     },
@@ -38,10 +39,14 @@ test('владелец видит встречи всех типов по дня
   expect(tuesday.getByText('Анна Гостева, anna@example.com')).toBeVisible()
   expect(tuesday.getByText('Обсудим запуск')).toBeVisible()
   expect(tuesday.getByText('Знакомство')).toBeVisible()
+  const phone = tuesday.getByRole('link', { name: '+7 (999) 123-45-67' })
+  expect(phone).toHaveAttribute('href', 'tel:+7 (999) 123-45-67')
 
   const wednesday = within(screen.getByRole('region', { name: 'среда, 4 марта' }))
   expect(wednesday.getByText('14:00–15:00')).toBeVisible()
   expect(wednesday.getByText('Разбор задачи')).toBeVisible()
+  // У записи без телефона строки с номером нет.
+  expect(wednesday.queryByRole('link')).not.toBeInTheDocument()
 })
 
 test('пока никто не записался, владелец видит подсказку', async () => {
