@@ -78,6 +78,8 @@ jobs:
           echo "ready=${ready}" >>"$GITHUB_OUTPUT"
 
       # Сводка без модели: оценки и проваленные проверки с примерами элементов.
+      # Замеры скорости в находки не попадают: на общем раннере они зависят от его
+      # загрузки, а не от приложения. Оценка скорости остаётся в отчёте для справки.
       - name: Выделить находки из отчёта
         env:
           READY: ${{ steps.lighthouse.outputs.ready }}
@@ -103,7 +105,7 @@ jobs:
                   scores: (.categories | map_values(.score)),
                   findings: ([
                     .categories | to_entries[]
-                    | select(.key != "performance" or .value.score < 0.9)
+                    | select(.key != "performance")
                     | .key as $category
                     | .value.auditRefs[]
                     | $report.audits[.id]
@@ -131,7 +133,8 @@ jobs:
             audit-report/findings.json: адрес приложения, ссылка на этот прогон, оценки
             Lighthouse и список находок. Прочитай её полностью.
 
-            Если status равен no_data, приложение не ответило. Задач не создавай и ничего
+            Если status равен no_data, приложение не ответило или отчёт снять не удалось.
+            Задач не создавай и ничего
             не закрывай: отсутствие данных не означает, что проблема исправлена. Напиши об
             этом в итоге.
 
