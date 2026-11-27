@@ -1,0 +1,11 @@
+name: Установить OpenCode
+description: >-
+  Ставит зафиксированную версию OpenCode CLI из npm. Готовый action
+  anomalyco/opencode/github узнаёт версию анонимным запросом к GitHub API
+  и падает, когда раннер упирается в лимит запросов.
+runs:
+  using: composite
+  steps:
+    - name: Установить OpenCode CLI
+      shell: bash
+      run: npm install --global --no-fund --no-audit opencode-ai@1.19.6
