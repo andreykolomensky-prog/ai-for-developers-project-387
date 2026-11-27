@@ -1,4 +1,4 @@
-import { Badge, Card, Group, Stack, Text, Title } from '@mantine/core'
+import { Anchor, Badge, Card, Group, Stack, Text, Title } from '@mantine/core'
 import type { Booking } from '../../api/generated/index.ts'
 import { useBookings, useEventTypes, useSchedule } from '../../api/queries.ts'
 import { ErrorState, LoadingState } from '../../components/QueryState.tsx'
@@ -53,6 +53,11 @@ export function UpcomingBookingsPage() {
                         <Text size="sm">
                           {booking.guestName}, {booking.guestEmail}
                         </Text>
+                        {booking.guestPhone && (
+                          <Text size="sm">
+                            <Anchor href={`tel:${booking.guestPhone}`}>{booking.guestPhone}</Anchor>
+                          </Text>
+                        )}
                         {booking.notes && (
                           <Text size="sm" c="dimmed" mt={4}>
                             {booking.notes}
