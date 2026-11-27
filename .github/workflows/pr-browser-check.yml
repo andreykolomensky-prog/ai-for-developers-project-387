@@ -1,0 +1,89 @@
+name: pr-browser-check
+
+# Браузерная проверка работающей версии pull request: приложение запускается
+# из точного head SHA, сценарии проходит Playwright с настоящим сервером.
+# Секрет модели этому воркфлоу не нужен.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: pr-browser-check-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  browser:
+    if: "!startsWith(github.event.pull_request.head.ref, 'release-please--')"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      # Без ref проверялся бы временный merge-коммит, а не версия автора.
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - uses: jdx/mise-action@v5
+        with:
+          version: 2026.11.7
+
+      - name: Записать проверяемый коммит
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          actual=$(git rev-parse HEAD)
+          echo "git rev-parse HEAD: ${actual}"
+          if [ "$actual" != "$EXPECTED_SHA" ]; then
+            echo "::error::Проверяется ${actual}, а head PR это ${EXPECTED_SHA}"
+            exit 1
+          fi
+          mkdir -p browser-check
+          echo "$actual" >browser-check/sha.txt
+
+      - name: Собрать приложение и поставить браузер
+        run: |
+          mise run build
+          mise run e2e:browser
+
+      # Trace пишется и для успешных сценариев: его можно открыть и посмотреть шаги.
+      - name: Пройти сценарии в браузере
+        id: scenarios
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_NAME: browser-check/results.json
+        run: mise exec -- playwright test --trace on --reporter=list,json
+
+      - name: Записать результат проверки
+        if: always()
+        env:
+          OUTCOME: ${{ steps.scenarios.outcome }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          sha=$(cat browser-check/sha.txt)
+          {
+            echo "# Браузерная проверка PR #${PR_NUMBER}"
+            echo
+            echo "- Проверенный коммит (git rev-parse HEAD): \`${sha}\`"
+            echo "- Результат: ${OUTCOME}"
+            echo "- Прогон: ${RUN_URL}"
+            echo
+            echo "## Сценарии"
+            echo
+            if [ -f browser-check/results.json ]; then
+              jq -r '.. | objects | select(has("specs")) | .specs[] | "- \(if .ok then "пройден" else "НЕ ПРОЙДЕН" end): \(.title)"' browser-check/results.json
+            else
+              echo "Отчёт Playwright не создан."
+            fi
+          } >browser-check/summary.md
+          cat browser-check/summary.md >>"$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: browser-check-${{ github.event.pull_request.head.sha }}
+          path: |
+            browser-check/
+            test-results/
+          retention-days: 30

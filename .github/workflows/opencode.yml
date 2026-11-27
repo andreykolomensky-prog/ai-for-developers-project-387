@@ -1,5 +1,8 @@
 name: opencode
 
+# Название запуска содержит номер issue или PR: по нему считается бюджет запусков.
+run-name: 'opencode #${{ github.event.issue.number || github.event.pull_request.number }}'
+
 # Интерактивный агент: отвечает на команду /oc или /opencode в комментарии
 # к issue, к pull request или к строке diff.
 on:
@@ -14,10 +17,15 @@ concurrency:
   group: opencode-${{ github.event.issue.number || github.event.pull_request.number }}
   cancel-in-progress: false
 
+env:
+  # Сколько раз человек может позвать агента в одном pull request.
+  PR_RUN_LIMIT: 4
+
 jobs:
-  opencode:
-    # Модель вызывается только по команде в тексте, от доверенного участника
-    # и не в ответ на сообщение бота. PR из fork секрет модели не получают.
+  # Допуск: проверяется до вызова модели и без секрета модели.
+  budget:
+    # Работа идёт только по команде в тексте, от доверенного участника и не в ответ
+    # на сообщение бота. PR из fork секрет модели не получают.
     if: >-
       github.event.comment.user.type != 'Bot' &&
       contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association) &&
@@ -25,7 +33,57 @@ jobs:
       (github.event_name != 'pull_request_review_comment' ||
       github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: read
+    outputs:
+      allowed: ${{ steps.count.outputs.allowed }}
+      used: ${{ steps.count.outputs.used }}
+      limit: ${{ steps.count.outputs.limit }}
+      is_pr: ${{ steps.context.outputs.is_pr }}
+      head_sha: ${{ steps.context.outputs.head_sha }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Определить, issue это или pull request
+        id: context
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMBER: ${{ github.event.issue.number || github.event.pull_request.number }}
+          IS_PR: ${{ github.event_name == 'pull_request_review_comment' || github.event.issue.pull_request != null }}
+        run: |
+          echo "is_pr=${IS_PR}" >>"$GITHUB_OUTPUT"
+          if [ "$IS_PR" != "true" ]; then
+            echo "head_sha=${GITHUB_SHA}" >>"$GITHUB_OUTPUT"
+            exit 0
+          fi
+          pr=$(gh pr view "$NUMBER" --repo "$GITHUB_REPOSITORY" --json isCrossRepository,headRefOid)
+          echo "head_sha=$(jq -r .headRefOid <<<"$pr")" >>"$GITHUB_OUTPUT"
+          if [ "$(jq -r .isCrossRepository <<<"$pr")" != "false" ]; then
+            echo "::error::PR открыт из fork: агент с секретом модели для него не запускается"
+            exit 1
+          fi
+
+      - name: Проверить бюджет запусков
+        id: count
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMBER: ${{ github.event.issue.number || github.event.pull_request.number }}
+          IS_PR: ${{ steps.context.outputs.is_pr }}
+          LIMIT: ${{ env.PR_RUN_LIMIT }}
+          RUN_ID: ${{ github.run_id }}
+        run: .github/scripts/pr-budget.sh
+
+  opencode:
+    needs: budget
+    if: needs.budget.outputs.allowed == 'true'
+    runs-on: ubuntu-latest
+    # Запас после остановки агента, чтобы задание успело записать причину.
+    timeout-minutes: 50
     permissions:
       # Чтение кода. Комментарии, ветки и PR агент создаёт токеном приложения OpenCode,
       # который получает в обмен на OIDC-токен.
@@ -34,22 +92,23 @@ jobs:
       # Скиллы to-spec и to-tickets публикуют спецификацию и тикеты командой gh с GH_TOKEN.
       issues: write
       pull-requests: read
+    outputs:
+      reason: ${{ steps.agent.outputs.reason || steps.key.outputs.reason }}
     steps:
-      - name: Проверить, что PR открыт из ветки этого репозитория
-        if: github.event_name == 'issue_comment' && github.event.issue.pull_request
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ github.event.issue.number }}
-        run: |
-          cross=$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json isCrossRepository --jq .isCrossRepository)
-          if [ "$cross" != "false" ]; then
-            echo "::error::PR открыт из fork: агент с секретом модели для него не запускается"
-            exit 1
-          fi
-
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
+
+      - name: Проверить, что ключ модели задан
+        id: key
+        env:
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+        run: |
+          if [ -z "$OPENCODE_API_KEY" ]; then
+            echo "reason=infra" >>"$GITHUB_OUTPUT"
+            echo "::error::Секрет OPENCODE_API_KEY не задан"
+            exit 1
+          fi
 
       # Те же версии инструментов, что и локально: агент запускает проверки командой mise run check.
       - uses: jdx/mise-action@v5
@@ -60,7 +119,7 @@ jobs:
 
       # Та же команда, которую выполняет action anomalyco/opencode/github.
       - name: Запустить OpenCode
-        run: opencode github run
+        id: agent
         env:
           MODEL: opencode/deepseek-v4.1-flash
           MENTIONS: /opencode,/oc
@@ -68,3 +127,64 @@ jobs:
           SHARE: 'false'
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e
+          timeout --signal=TERM --kill-after=30s 40m opencode github run
+          code=$?
+          set -e
+          case "$code" in
+            0) reason=success ;;
+            124 | 137) reason=timeout ;;
+            *) reason=agent_failed ;;
+          esac
+          echo "reason=${reason}" >>"$GITHUB_OUTPUT"
+          exit "$code"
+
+  # Итог без модели: объясняет человеку, почему агент не ответил.
+  report:
+    needs: [budget, opencode]
+    if: >-
+      always() && needs.budget.result == 'success' &&
+      (needs.budget.outputs.allowed != 'true' || needs.opencode.result != 'success')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Опубликовать причину остановки
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMBER: ${{ github.event.issue.number || github.event.pull_request.number }}
+          ALLOWED: ${{ needs.budget.outputs.allowed }}
+          USED: ${{ needs.budget.outputs.used }}
+          LIMIT: ${{ needs.budget.outputs.limit }}
+          HEAD_SHA: ${{ needs.budget.outputs.head_sha }}
+          AGENT_RESULT: ${{ needs.opencode.result }}
+          AGENT_REASON: ${{ needs.opencode.outputs.reason }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}
+        run: |
+          if [ "$ALLOWED" != "true" ]; then
+            reason=limit_exhausted
+            detail="Бюджет запусков агента для этого pull request исчерпан: использовано ${USED}, предел ${LIMIT}. Модель не вызывалась."
+          elif [ "$AGENT_REASON" = "timeout" ]; then
+            reason=timeout
+            detail="Агент не уложился в отведённое время и был остановлен."
+          elif [ "$AGENT_REASON" = "agent_failed" ]; then
+            reason=agent_failed
+            detail="Агент завершился с ошибкой."
+          elif [ "$AGENT_REASON" = "infra" ] || [ "$AGENT_RESULT" = "failure" ]; then
+            reason=infra
+            detail="Запуск не дошёл до агента: не подготовлены инструменты или не задан ключ модели."
+          else
+            reason=unknown
+            detail="Задание завершилось со статусом «${AGENT_RESULT}». Причину нужно уточнить по логам: возможна отмена человеком или тайм-аут задания."
+          fi
+          gh issue comment "$NUMBER" --repo "$GITHUB_REPOSITORY" --body "### Агент остановлен: нужен человек
+
+          - Причина: \`${reason}\`
+          - ${detail}
+          - Последний SHA: \`${HEAD_SHA}\`
+          - Логи: ${RUN_URL}
+
+          Автоматического повтора нет. Следующее действие выбирает человек."
