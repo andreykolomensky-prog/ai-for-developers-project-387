@@ -1,0 +1,163 @@
+name: opencode-audit
+
+# Регулярный аудит: обычные шаги собирают отчёт Lighthouse об опубликованном
+# приложении, агент разбирает его и заводит задачу по каждой новой находке.
+on:
+  schedule:
+    # Раз в сутки, в 06:17 по Москве.
+    - cron: '17 6 * * *'
+      timezone: Europe/Moscow
+  workflow_dispatch:
+
+# Аудиты не идут параллельно: второй ждёт, иначе оба создадут одну и ту же задачу.
+concurrency:
+  group: opencode-audit
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      # Агент ищет существующие задачи и создаёт новую командой gh с GH_TOKEN.
+      issues: write
+    env:
+      APP_URL: ${{ vars.APP_URL }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup-opencode
+
+      # Отчёты лежат в каталоге audit-report, он исключён из Git и в коммиты не попадает.
+      - name: Собрать отчёт Lighthouse
+        id: lighthouse
+        run: |
+          mkdir -p audit-report
+          if [ -z "$APP_URL" ]; then
+            echo "::error::Переменная репозитория APP_URL не задана"
+            exit 1
+          fi
+          # Бесплатный сервис засыпает: ждём, пока он проснётся и ответит.
+          ready=false
+          for attempt in $(seq 1 12); do
+            if curl --silent --fail --max-time 30 --output /dev/null "$APP_URL"; then
+              ready=true
+              break
+            fi
+            sleep 10
+          done
+          echo "ready=${ready}" >>"$GITHUB_OUTPUT"
+          if [ "$ready" != "true" ]; then
+            echo "::warning::Приложение ${APP_URL} не ответило: данных для аудита нет"
+            exit 0
+          fi
+          npx --yes lighthouse@13.6.0 "$APP_URL" \
+            --quiet \
+            --chrome-flags="--headless=new --no-sandbox" \
+            --only-categories=performance,accessibility,best-practices,seo \
+            --output=json --output=html \
+            --output-path=audit-report/lighthouse </dev/null
+
+      # Сводка без модели: оценки и проваленные проверки с примерами элементов.
+      - name: Выделить находки из отчёта
+        env:
+          READY: ${{ steps.lighthouse.outputs.ready }}
+        run: |
+          if [ "$READY" != "true" ]; then
+            jq -n --arg url "$APP_URL" --arg run "$RUN_URL" \
+              '{status: "no_data", appUrl: $url, run: $run, findings: [],
+                note: "Приложение не ответило. Отсутствие данных не означает, что прежние находки исправлены."}' \
+              >audit-report/findings.json
+          else
+            jq --arg url "$APP_URL" --arg run "$RUN_URL" '
+              . as $report
+              | {
+                  status: "ok",
+                  appUrl: $url,
+                  run: $run,
+                  fetchedAt: .fetchTime,
+                  lighthouseVersion: .lighthouseVersion,
+                  scores: (.categories | map_values(.score)),
+                  findings: [
+                    .categories | to_entries[]
+                    | select(.key != "performance" or .value.score < 0.9)
+                    | .key as $category
+                    | .value.auditRefs[]
+                    | $report.audits[.id]
+                    | select(.scoreDisplayMode == "binary" or .scoreDisplayMode == "numeric")
+                    | select(.score != null and .score < 0.9)
+                    | {
+                        id: ("lighthouse/" + .id),
+                        category: $category,
+                        title,
+                        description,
+                        displayValue: (.displayValue // null),
+                        examples: [(.details.items // [])[:5][] | (.node.snippet // .url // .source // empty)]
+                      }
+                  ]
+                }' audit-report/lighthouse.report.json >audit-report/findings.json
+          fi
+          jq '{status, scores, findings: [.findings[] | {id, title}]}' audit-report/findings.json
+
+      - name: Разобрать отчёт и завести задачи по новым находкам
+        env:
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PROMPT: |
+            Ты разбираешь отчёт регулярного аудита приложения. Сводка лежит в файле
+            audit-report/findings.json: адрес приложения, ссылка на этот прогон, оценки
+            Lighthouse и список находок. Прочитай её полностью.
+
+            Если status равен no_data, приложение не ответило. Задач не создавай и ничего
+            не закрывай: отсутствие данных не означает, что проблема исправлена. Напиши об
+            этом в итоге.
+
+            Для каждой находки из findings:
+            1. Найди существующие задачи аудита:
+               gh issue list --label audit --state all --limit 100 --json number,title,state,body
+               Задача относится к находке, если в её теле есть строка
+               «Идентификатор находки: <id находки>».
+            2. Если открытая задача по этой находке уже есть, новую не создавай и комментарий
+               не добавляй.
+            3. Если задача по этой находке есть, но закрыта, проблема появилась снова: создай
+               новую задачу и сошлись в ней на закрытую.
+            4. Если задачи нет, создай её:
+               gh issue create --label audit --label needs-triage --title "Аудит: <суть проблемы>" --body "<текст>"
+               В теле задачи нужны разделы «Проблема» (что не так и кого это затрагивает),
+               «Что предлагается сделать» (конкретное действие) и «Связь с отчётом» (адрес
+               приложения, ссылка на прогон, значение из отчёта и примеры элементов).
+               Последней строкой тела поставь «Идентификатор находки: <id находки>».
+
+            Одна находка это одна задача. Находки не объединяй и не выдумывай: бери только то,
+            что есть в сводке. Новая задача это входящее обращение, брать ли её в работу,
+            решает человек. Код не меняй, ветки и pull request не создавай.
+
+            Итоговый ответ по-русски: оценки, затем по каждой находке одна строка с её
+            идентификатором и результатом (создана задача #N, уже есть задача #N или данных
+            нет), в конце ссылка на прогон.
+        run: |
+          opencode run --format json --model opencode/deepseek-v4.1-flash --agent auditor "$PROMPT" \
+            </dev/null >audit-report/agent.jsonl
+          jq -rs 'map(select(.type == "text")) | last | .part.text // empty' audit-report/agent.jsonl \
+            >audit-report/agent-output.md
+          if [ ! -s audit-report/agent-output.md ]; then
+            echo "::error::Агент не вернул вывод"
+            exit 1
+          fi
+          {
+            echo "## Вывод агента"
+            echo
+            cat audit-report/agent-output.md
+          } >>"$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: audit-report
+          path: audit-report/
+          retention-days: 30
+          overwrite: true

@@ -28,6 +28,20 @@
           "gh run list*": "allow"
         }
       }
+    },
+    "auditor": {
+      "description": "Разбирает отчёт регулярного аудита и заводит задачи по новым находкам, код не правит",
+      "mode": "primary",
+      "permission": {
+        "edit": "deny",
+        "webfetch": "deny",
+        "bash": {
+          "*": "deny",
+          "gh issue list*": "allow",
+          "gh issue view*": "allow",
+          "gh issue create*": "allow"
+        }
+      }
     }
   }
 }
