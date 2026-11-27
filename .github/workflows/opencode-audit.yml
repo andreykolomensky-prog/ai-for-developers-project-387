@@ -20,7 +20,8 @@ jobs:
     timeout-minutes: 25
     permissions:
       contents: read
-      # Агент ищет существующие задачи и создаёт новую командой gh с GH_TOKEN.
+      # Агент ищет существующие задачи и создаёт новую командой gh с GH_TOKEN,
+      # шаг журнала обновляет текст задачи-журнала.
       issues: write
     env:
       APP_URL: ${{ vars.APP_URL }}
@@ -140,14 +141,16 @@ jobs:
 
             Для каждой находки из findings:
             1. Найди существующие задачи аудита:
-               gh issue list --label audit --state all --limit 100 --json number,title,state,body
+               gh issue list --label audit --state all --limit 100 --json number,title,state,stateReason,body
                Задача относится к находке, если в её теле есть строка
                «Идентификатор находки: <id находки>».
             2. Если открытая задача по этой находке уже есть, новую не создавай и комментарий
                не добавляй.
-            3. Если задача по этой находке есть, но закрыта, проблема появилась снова: создай
-               новую задачу и сошлись в ней на закрытую.
-            4. Если задачи нет, создай её:
+            3. Если задача по этой находке закрыта с причиной NOT_PLANNED, человек решил её не
+               брать: новую не создавай.
+            4. Если задача по этой находке закрыта с причиной COMPLETED, проблема появилась
+               снова: создай новую задачу и сошлись в ней на закрытую.
+            5. Если задачи нет, создай её:
                gh issue create --label audit --label needs-triage --title "Аудит: <суть проблемы>" --body "<текст>"
                В теле задачи нужны разделы «Проблема» (что не так и кого это затрагивает),
                «Что предлагается сделать» (конкретное действие) и «Связь с отчётом» (адрес
@@ -163,8 +166,8 @@ jobs:
             решает человек. Код не меняй, ветки и pull request не создавай.
 
             Итоговый ответ по-русски: оценки, затем по каждой находке одна строка с её
-            идентификатором и результатом (создана задача #N, уже есть задача #N или данных
-            нет), в конце ссылка на прогон.
+            идентификатором и результатом (создана задача #N, уже есть задача #N, отклонена
+            человеком в #N или данных нет), в конце ссылка на прогон.
         run: |
           opencode run --format json --model opencode/deepseek-v4.1-flash --agent auditor "$PROMPT" \
             </dev/null >audit-report/agent.jsonl
@@ -179,6 +182,45 @@ jobs:
             echo
             cat audit-report/agent-output.md
           } >>"$GITHUB_STEP_SUMMARY"
+
+      # Артефакт живёт 30 дней, страница прогона тоже не вечна. Поэтому вывод последнего
+      # прогона лежит в одной задаче-журнале: её текст заменяется, прежние версии остаются
+      # в истории правок. Метки audit у журнала нет, в поиск находок он не попадает.
+      - name: Записать вывод в журнал аудита
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          mkdir -p audit-report
+          gh label create audit-log --repo "$GITHUB_REPOSITORY" --color C5DEF5 \
+            --description "Журнал регулярного аудита" 2>/dev/null || true
+          data=$(jq -r '.status // "нет сводки"' audit-report/findings.json 2>/dev/null || echo "нет сводки")
+          {
+            echo "Здесь лежит вывод последнего прогона воркфлоу \`opencode-audit\`. Текст заменяется при каждом прогоне, прежние версии видны в истории правок. Это журнал, а не находка: закрывать задачу не нужно."
+            echo
+            echo "- Прогон: $RUN_URL"
+            echo "- Время: $(date -u '+%Y-%m-%d %H:%M UTC')"
+            echo "- Приложение: ${APP_URL:-не задано}"
+            echo "- Состояние данных: \`$data\`"
+            echo "- Состояние задания: \`$JOB_STATUS\`"
+            echo
+            echo "## Вывод агента"
+            echo
+            if [ -s audit-report/agent-output.md ]; then
+              cat audit-report/agent-output.md
+            else
+              echo "Агент не вернул вывод. Причина в логах прогона."
+            fi
+          } >audit-report/journal.md
+          number=$(gh issue list --repo "$GITHUB_REPOSITORY" --label audit-log --state open \
+            --limit 1 --json number --jq '.[0].number // empty')
+          if [ -n "$number" ]; then
+            gh issue edit "$number" --repo "$GITHUB_REPOSITORY" --body-file audit-report/journal.md
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "Журнал регулярного аудита" \
+              --label audit-log --body-file audit-report/journal.md
+          fi
 
       - uses: actions/upload-artifact@v7
         if: always()
