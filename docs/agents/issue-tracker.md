@@ -58,3 +58,4 @@ Used by `/wayfinder`. The **map** is a single issue with **child** issues as tic
 - **Claim**: `gh issue edit <n> --add-assignee @me`, the session's first write.
 - **Resolve**: `gh issue comment <n> --body "<answer>"`, then `gh issue close <n>`, then append a context pointer to the map's Decisions-so-far.
 - Issues opened by the scheduled audit carry `audit` and `needs-triage`. They are incoming requests: a human decides whether to take them into work. The last line of such an issue holds the finding identifier, for example `Идентификатор находки: lighthouse/color-contrast`, and the audit uses it to avoid duplicates.
+- The issue labelled `audit-log` is the audit journal: the workflow rewrites its body on every run with the agent output of that run. It is not a finding and not a ticket, leave it open.
