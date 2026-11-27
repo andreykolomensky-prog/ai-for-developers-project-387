@@ -73,6 +73,41 @@ describe('создание записи', () => {
     expect(response.body).not.toHaveProperty('notes')
   })
 
+  test('гость оставляет телефон: он возвращается как введён, без пробелов по краям', async () => {
+    const response = await book('meeting-30', msk('2026-03-03', '10:00'), {
+      guestPhone: '  +7 (999) 123-45-67  ',
+    })
+
+    expect(response.status).toBe(201)
+    expect(response.body.guestPhone).toBe('+7 (999) 123-45-67')
+  })
+
+  test.each([
+    ['ровно 5 символов', '12345'],
+    ['ровно 30 символов', '1'.repeat(30)],
+  ])('телефон допустимой длины (%s) принимается', async (_name, guestPhone) => {
+    const response = await book('meeting-30', msk('2026-03-03', '10:00'), { guestPhone })
+
+    expect(response.status).toBe(201)
+    expect(response.body.guestPhone).toBe(guestPhone)
+  })
+
+  test('телефон необязателен: без номера поля в ответе нет', async () => {
+    const response = await book('meeting-30', msk('2026-03-03', '10:00'))
+
+    expect(response.status).toBe(201)
+    expect(response.body).not.toHaveProperty('guestPhone')
+  })
+
+  test('телефон из одних пробелов считается неуказанным', async () => {
+    const response = await book('meeting-30', msk('2026-03-03', '10:00'), {
+      guestPhone: '   ',
+    })
+
+    expect(response.status).toBe(201)
+    expect(response.body).not.toHaveProperty('guestPhone')
+  })
+
   test('занятый слот больше не предлагается как свободный', async () => {
     const startTime = msk('2026-03-03', '10:00')
     expect(await slotAvailability('meeting-30', startTime)).toBe(true)
@@ -224,6 +259,10 @@ describe('ошибки данных при создании записи', () =>
     ['пустое имя', { guestName: '' }, 'guestName'],
     ['имя из одних пробелов', { guestName: '   ' }, 'guestName'],
     ['некорректный email', { guestEmail: 'не-почта' }, 'guestEmail'],
+    ['слишком короткий телефон', { guestPhone: '1234' }, 'guestPhone'],
+    ['слишком длинный телефон', { guestPhone: '1'.repeat(31) }, 'guestPhone'],
+    ['недопустимые символы в телефоне', { guestPhone: 'phone123' }, 'guestPhone'],
+    ['телефон без цифр', { guestPhone: '+-+-+-' }, 'guestPhone'],
     ['время не в формате даты', { startTime: 'завтра в десять' }, 'startTime'],
     ['слишком длинная заметка', { notes: 'я'.repeat(501) }, 'notes'],
   ])('%s отклоняется с кодом 422', async (_name, patch, field) => {
