@@ -1,0 +1,45 @@
+name: pr-commits
+
+# Проверка формата коммитов pull request. Локально формат проверяет git-хук,
+# но у агента на раннере хуки выключены, поэтому правило проверяется здесь.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: pr-commits-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  conventional:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: jdx/mise-action@v5
+        with:
+          version: 2026.11.7
+
+      - name: Проверить сообщения коммитов по Conventional Commits
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          failed=0
+          for sha in $(git rev-list --no-merges "${BASE_SHA}..HEAD"); do
+            git log -1 --format=%B "$sha" >commit-message.txt
+            subject=$(head -n 1 commit-message.txt)
+            if hk util check-conventional-commit commit-message.txt >/dev/null 2>&1; then
+              echo "ok      ${sha:0:7} ${subject}"
+            else
+              echo "::error::Коммит ${sha:0:7} не по Conventional Commits: ${subject}"
+              failed=1
+            fi
+          done
+          exit "$failed"
