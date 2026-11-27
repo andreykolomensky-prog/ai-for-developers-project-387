@@ -125,6 +125,10 @@ jobs:
           MENTIONS: /opencode,/oc
           # Репозиторий публичный: сессии агента наружу не публикуются.
           SHARE: 'false'
+          # Git-хуки hk на раннере выключены. Незакоммиченный остаток OpenCode записывает
+          # коммитом с произвольным текстом: хук commit-msg отклонил бы его, и вся работа
+          # запуска пропала бы. Формат коммитов проверяет воркфлоу pr-commits.
+          HK: '0'
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
