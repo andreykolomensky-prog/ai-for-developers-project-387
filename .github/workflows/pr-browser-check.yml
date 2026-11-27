@@ -87,3 +87,4 @@ jobs:
             browser-check/
             test-results/
           retention-days: 30
+          overwrite: true

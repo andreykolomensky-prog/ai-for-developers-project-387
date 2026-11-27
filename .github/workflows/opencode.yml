@@ -143,9 +143,12 @@ jobs:
   # Итог без модели: объясняет человеку, почему агент не ответил.
   report:
     needs: [budget, opencode]
+    # Отчёт нужен и когда сама проверка бюджета упала: иначе человек не узнает, почему нет ответа.
     if: >-
-      always() && needs.budget.result == 'success' &&
-      (needs.budget.outputs.allowed != 'true' || needs.opencode.result != 'success')
+      always() &&
+      (needs.budget.result == 'failure' ||
+      (needs.budget.result == 'success' &&
+      (needs.budget.outputs.allowed != 'true' || needs.opencode.result != 'success')))
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -156,6 +159,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           NUMBER: ${{ github.event.issue.number || github.event.pull_request.number }}
+          BUDGET_RESULT: ${{ needs.budget.result }}
           ALLOWED: ${{ needs.budget.outputs.allowed }}
           USED: ${{ needs.budget.outputs.used }}
           LIMIT: ${{ needs.budget.outputs.limit }}
@@ -164,7 +168,10 @@ jobs:
           AGENT_REASON: ${{ needs.opencode.outputs.reason }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}
         run: |
-          if [ "$ALLOWED" != "true" ]; then
+          if [ "$BUDGET_RESULT" != "success" ]; then
+            reason=infra
+            detail="Не удалось проверить допуск и бюджет запусков: сбой запроса к GitHub или pull request открыт из fork. Модель не вызывалась."
+          elif [ "$ALLOWED" != "true" ]; then
             reason=limit_exhausted
             detail="Бюджет запусков агента для этого pull request исчерпан: использовано ${USED}, предел ${LIMIT}. Модель не вызывалась."
           elif [ "$AGENT_REASON" = "timeout" ]; then
@@ -184,7 +191,7 @@ jobs:
 
           - Причина: \`${reason}\`
           - ${detail}
-          - Последний SHA: \`${HEAD_SHA}\`
+          - Последний SHA: \`${HEAD_SHA:-не определён}\`
           - Логи: ${RUN_URL}
 
           Автоматического повтора нет. Следующее действие выбирает человек."
