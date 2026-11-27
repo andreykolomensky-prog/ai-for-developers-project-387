@@ -18,6 +18,7 @@ function toBooking(booking: StoredBooking): Booking {
     endTime: toIso(booking.end),
     guestName: booking.guestName,
     guestEmail: booking.guestEmail,
+    ...(booking.guestPhone ? { guestPhone: booking.guestPhone } : {}),
     ...(booking.notes ? { notes: booking.notes } : {}),
     createdAt: toIso(booking.createdAt),
   }
@@ -28,13 +29,23 @@ const eventTypeNotFound: NotFoundError = {
   message: 'Тип встречи не найден',
 }
 
-function startTimeError(message: string): ValidationError {
+function fieldError(field: string, message: string): ValidationError {
   return {
     code: 'validation_error',
     message: 'Данные запроса не прошли проверку',
-    issues: [{ field: 'startTime', message }],
+    issues: [{ field, message }],
   }
 }
+
+function startTimeError(message: string): ValidationError {
+  return fieldError('startTime', message)
+}
+
+const guestPhoneError = () =>
+  fieldError(
+    'guestPhone',
+    'Телефон должен содержать от 5 до 30 символов: цифры, +, пробелы, дефисы и скобки',
+  )
 
 /** Обработчики операций контракта. Имена совпадают с `operationId` из OpenAPI. */
 export function createHandlers(rules: BookingRules): RouteHandlers {
@@ -91,6 +102,8 @@ export function createHandlers(rules: BookingRules): RouteHandlers {
       switch (result.reason) {
         case 'event_type_not_found':
           return reply.code(404).send(eventTypeNotFound)
+        case 'invalid_phone':
+          return reply.code(422).send(guestPhoneError())
         case 'not_a_slot':
           return reply
             .code(422)

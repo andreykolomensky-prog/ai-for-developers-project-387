@@ -33,7 +33,23 @@ export function buildBookingWindow(eventType: EventType, rules: BookingRules): B
 
 export type CreateBookingResult =
   | { ok: true; booking: StoredBooking }
-  | { ok: false; reason: 'event_type_not_found' | 'not_a_slot' | 'slot_started' | 'slot_taken' }
+  | {
+      ok: false
+      reason:
+        | 'event_type_not_found'
+        | 'invalid_phone'
+        | 'not_a_slot'
+        | 'slot_started'
+        | 'slot_taken'
+    }
+
+/** Допустимые символы телефона: цифры, `+`, пробелы, дефисы и скобки. */
+const phoneSymbols = /^[\d+ ()-]+$/
+
+/** Мягкая проверка телефона: 5–30 символов, допустимые символы и хотя бы одна цифра. */
+function isGuestPhoneValid(phone: string): boolean {
+  return phone.length >= 5 && phone.length <= 30 && phoneSymbols.test(phone) && /\d/.test(phone)
+}
 
 /**
  * Создаёт запись, если выбранное время является слотом окна записи, слот ещё
@@ -51,6 +67,11 @@ export function createBooking(
   const eventType = store.getEventType(request.eventTypeId)
   if (!eventType) {
     return { ok: false, reason: 'event_type_not_found' }
+  }
+
+  const guestPhone = request.guestPhone?.trim()
+  if (guestPhone && !isGuestPhoneValid(guestPhone)) {
+    return { ok: false, reason: 'invalid_phone' }
   }
 
   const start = Date.parse(request.startTime)
@@ -75,6 +96,9 @@ export function createBooking(
     guestName: request.guestName.trim(),
     guestEmail: request.guestEmail.trim(),
     createdAt: now,
+  }
+  if (guestPhone) {
+    booking.guestPhone = guestPhone
   }
   const notes = request.notes?.trim()
   if (notes) {

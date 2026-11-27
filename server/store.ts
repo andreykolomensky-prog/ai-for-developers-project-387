@@ -7,6 +7,7 @@ export type StoredBooking = Interval & {
   eventType: EventType
   guestName: string
   guestEmail: string
+  guestPhone?: string
   notes?: string
   createdAt: number
 }
