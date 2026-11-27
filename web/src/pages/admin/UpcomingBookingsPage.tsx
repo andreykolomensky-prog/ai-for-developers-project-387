@@ -55,7 +55,7 @@ export function UpcomingBookingsPage() {
                         </Text>
                         {booking.guestPhone && (
                           <Text size="sm">
-                            <Anchor href={`tel:${booking.guestPhone}`}>{booking.guestPhone}</Anchor>
+                            <Anchor href={telHref(booking.guestPhone)}>{booking.guestPhone}</Anchor>
                           </Text>
                         )}
                         {booking.notes && (
@@ -75,6 +75,12 @@ export function UpcomingBookingsPage() {
       </Stack>
     </>
   )
+}
+
+/** Адрес tel: только из цифр и ведущего плюса, чтобы телефон набирался одним нажатием. */
+function telHref(phone: string): string {
+  const digits = phone.replace(/\D/g, '')
+  return `tel:${phone.trimStart().startsWith('+') ? `+${digits}` : digits}`
 }
 
 /** Группирует записи по календарной дате владельца, сохраняя порядок по времени. */

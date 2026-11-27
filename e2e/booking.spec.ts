@@ -87,7 +87,7 @@ test('гость оставляет телефон, видит его в под�
   const booking = page.getByRole('listitem').filter({ hasText: 'Гость с телефоном' })
   await expect(booking.getByRole('link', { name: '+7 (999) 123-45-67' })).toHaveAttribute(
     'href',
-    'tel:+7 (999) 123-45-67',
+    'tel:+79991234567',
   )
 })
 
