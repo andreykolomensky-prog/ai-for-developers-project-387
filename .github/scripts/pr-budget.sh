@@ -2,12 +2,12 @@
 # Считает, сколько раз агента уже запускали для этого pull request, и решает,
 # можно ли вызывать модель ещё раз.
 #
-# Источник счётчика: история GitHub Actions. Учитывается каждый допущенный
-# запуск воркфлоу opencode с тем же номером PR, включая текущий, и каждая его
-# попытка: повтор через Re-run, отмена и тайм-аут тоже расходуют бюджет.
-# Пропущенные запуски, где в комментарии не было команды, не считаются.
-# Токен агента историю запусков изменить не может, поэтому текст комментариев
-# на бюджет не влияет.
+# Источник счётчика: история GitHub Actions. Запуск считается допущенным, если
+# в нём успешно отработало задание budget, то есть команду дал доверенный
+# участник. Учитывается каждая попытка: повтор через Re-run, отмена и тайм-аут
+# агента тоже расходуют бюджет. Запуски без команды и запуски, отменённые
+# в очереди до проверки, не считаются. Токен агента историю запусков изменить
+# не может, поэтому текст комментариев на бюджет не влияет.
 set -euo pipefail
 
 : "${NUMBER:?номер issue или pull request}"
@@ -17,16 +17,26 @@ set -euo pipefail
 
 title="opencode #${NUMBER}"
 
-used=$(
+run_ids=$(
   gh api --paginate \
     "repos/${GITHUB_REPOSITORY}/actions/workflows/opencode.yml/runs?per_page=100" \
     --jq ".workflow_runs[]
           | select(.display_title == \"${title}\")
-          | select(.conclusion != \"skipped\")
           | select(.id <= ${RUN_ID})
-          | .run_attempt" |
-    awk '{ total += $1 } END { print total + 0 }'
+          | .id"
 )
+
+# Текущая попытка: её задание budget ещё выполняется и в истории не завершено.
+used=1
+for run_id in $run_ids; do
+  admitted=$(
+    gh api --paginate \
+      "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/jobs?filter=all&per_page=100" \
+      --jq '.jobs[] | select(.name == "budget" and .conclusion == "success") | .id' |
+      wc -l
+  )
+  used=$((used + admitted))
+done
 
 allowed=true
 if [ "$IS_PR" = "true" ] && [ "$used" -gt "$LIMIT" ]; then

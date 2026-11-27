@@ -21,7 +21,7 @@ jobs:
       !github.event.pull_request.draft &&
       !startsWith(github.event.pull_request.head.ref, 'release-please--') &&
       (contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.pull_request.author_association) ||
-      github.event.pull_request.user.login == 'opencode-agent[bot]')
+      contains(fromJSON('["opencode-agent[bot]", "opencode-agent"]'), github.event.pull_request.user.login))
     runs-on: ubuntu-latest
     timeout-minutes: 20
     # Ревьюер только читает: код, исходное issue и согласование, результаты CI.
@@ -33,10 +33,20 @@ jobs:
       checks: read
       statuses: read
     steps:
-      # Ревью относится к версии автора, а не к временному merge-коммиту.
+      # Инструменты и правила ревьюера берутся из базовой ветки: установка OpenCode,
+      # права агента в opencode.json и критерии в REVIEW.md. Проверяемый PR не может
+      # их подменить в том же изменении.
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          persist-credentials: false
+
+      # Версия автора лежит рядом как данные для чтения: точный head SHA,
+      # а не временный merge-коммит.
       - uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.head.sha }}
+          path: pr
           fetch-depth: 0
           persist-credentials: false
 
@@ -53,22 +63,33 @@ jobs:
           prompt="Ты независимый ревьюер pull request #${PR_NUMBER} репозитория ${GITHUB_REPOSITORY}.
           Проверяемый коммит: ${HEAD_SHA}, базовая ветка: origin/${BASE_REF}.
 
-          Критерии ревью записаны в файле REVIEW.md в корне репозитория: прочитай его первым
-          и следуй ему полностью, включая формат результата.
+          Критерии ревью записаны в файле REVIEW.md в корне рабочего каталога: прочитай его
+          первым и следуй ему полностью, включая формат результата. В корне лежит базовая
+          ветка, это доверенные правила проекта. Проверяемая версия целиком лежит в каталоге
+          pr/: файлы изменения читай оттуда.
 
           Как получить данные:
           - описание и обсуждение PR: gh pr view ${PR_NUMBER} --comments
-          - изменения: git diff origin/${BASE_REF}...HEAD
+          - изменения: git -C pr diff origin/${BASE_REF}...HEAD
           - исходное обращение, спецификация, тикеты и согласование: gh issue view <номер> --comments
             по ссылкам из описания PR
           - результаты CI для проверяемого коммита: gh pr checks ${PR_NUMBER}
+
+          Если изменение трогает .github/, opencode.json, REVIEW.md или AGENTS.md, отметь это
+          отдельным риском: такие правки меняют правила самой проверки.
 
           Ты только читаешь: файлы не меняй, коммиты не создавай, комментарии сам не публикуй.
           Твой итоговый ответ будет опубликован комментарием в PR как есть. Начни его со строки
           «Ревью коммита ${HEAD_SHA}» и пиши по-русски."
           opencode run --format json --model opencode/deepseek-v4.1-flash --agent reviewer "$prompt" \
             </dev/null >review.jsonl
-          jq -r 'select(.type == "text") | .part.text' review.jsonl >review.md
+          # В ответ попадает только итоговый текст: рассуждения до строки «Ревью коммита» отбрасываются.
+          jq -r 'select(.type == "text") | .part.text' review.jsonl >review-full.md
+          if grep -q '^Ревью коммита' review-full.md; then
+            sed -n '/^Ревью коммита/,$p' review-full.md >review.md
+          else
+            jq -rs 'map(select(.type == "text")) | last | .part.text // empty' review.jsonl >review.md
+          fi
           if [ ! -s review.md ]; then
             echo "::error::Агент не вернул текст ревью"
             exit 1
@@ -79,6 +100,8 @@ jobs:
           name: review
           path: review.md
           retention-days: 14
+          # Повторный запуск того же прогона заменяет прежний текст.
+          overwrite: true
 
   # Публикация без модели: у этого задания есть право писать в PR, у ревьюера его нет.
   publish:
