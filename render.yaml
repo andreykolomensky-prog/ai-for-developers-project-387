@@ -1,0 +1,9 @@
+# Blueprint для Render: веб-сервис из Dockerfile в корне репозитория.
+services:
+  - type: web
+    name: call-calendar
+    runtime: docker
+    plan: free
+    region: frankfurt
+    healthCheckPath: /api/health
+    autoDeployTrigger: commit

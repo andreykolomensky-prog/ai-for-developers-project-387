@@ -1,0 +1,23 @@
+.tab {
+  padding: rem(6px) rem(12px);
+  border: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  border-radius: var(--mantine-radius-xl);
+  color: inherit;
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 500;
+  text-decoration: none;
+
+  @mixin hover {
+    border-color: var(--mantine-color-orange-5);
+  }
+
+  &:global(.active) {
+    border-color: var(--mantine-color-orange-6);
+    background-color: var(--mantine-color-orange-6);
+    color: var(--mantine-color-white);
+  }
+}
+
+.content {
+  margin-top: var(--mantine-spacing-xl);
+}

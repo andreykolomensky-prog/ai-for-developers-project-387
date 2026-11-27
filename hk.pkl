@@ -1,0 +1,38 @@
+amends "package://github.com/jdx/hk/releases/download/v2.12.0/hk@2.12.0#/Config.pkl"
+import "package://github.com/jdx/hk/releases/download/v2.12.0/hk@2.12.0#/Builtins.pkl"
+
+// Файл проверки Хекслета менять нельзя, поэтому хуки его не трогают.
+exclude = List(
+  ".github/workflows/hexlet-check.yml",
+  "api/generated",
+  "web/src/api/generated",
+  "server/generated",
+  // Скиллы ставит установщик, их содержимое не правится и не проверяется.
+  ".claude/skills",
+  "skills-lock.json"
+)
+
+// Из этих шагов hk собирает хуки check, fix и pre-commit.
+steps {
+  ["ox_lint"] = Builtins.ox_lint
+  ["oxfmt"] = Builtins.oxfmt
+  ["typecheck"] {
+    glob = List("**/*.ts", "**/*.tsx", "tsconfig*.json")
+    check = "tsc -b"
+  }
+}
+
+hooks {
+  ["commit-msg"] {
+    steps {
+      ["conventional_commit"] = Builtins.check_conventional_commit
+    }
+  }
+  ["pre-push"] {
+    steps {
+      ["check"] {
+        check = "mise run check"
+      }
+    }
+  }
+}

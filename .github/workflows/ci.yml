@@ -1,0 +1,23 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - '**'
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # Ставит инструменты из mise.toml тех же версий, что и локально.
+      - uses: jdx/mise-action@v5
+        with:
+          version: 2026.11.7
+
+      - name: Все проверки проекта
+        run: mise run check

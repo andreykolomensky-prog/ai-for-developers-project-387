@@ -1,0 +1,436 @@
+openapi: 3.1.0
+info:
+  title: Запись на звонок
+  version: 1.0.0
+  description: |-
+    Контракт сервиса записи на звонок. Владелец заводит типы встреч и смотрит
+    записи, гость выбирает свободный слот в окне записи и создаёт запись.
+tags:
+  - name: Служебное
+  - name: Расписание
+  - name: Типы встреч
+  - name: Записи
+paths:
+  /api/bookings:
+    get:
+      operationId: listBookings
+      description: Предстоящие записи всех типов встреч по возрастанию времени начала.
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Booking'
+      tags:
+        - Записи
+    post:
+      operationId: createBooking
+      description: Гость создаёт запись на свободный слот.
+      parameters: []
+      responses:
+        '201':
+          description: The request has succeeded and a new resource has been created as a result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+        '404':
+          description: Запрошенный ресурс не найден.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+        '409':
+          description: Выбранное время пересекается с существующей записью.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SlotTakenError'
+        '422':
+          description: Данные запроса не прошли проверку.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+      tags:
+        - Записи
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBookingRequest'
+  /api/event-types:
+    get:
+      operationId: listEventTypes
+      description: Список типов встреч в порядке создания.
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EventType'
+      tags:
+        - Типы встреч
+    post:
+      operationId: createEventType
+      description: Владелец создаёт тип встречи.
+      parameters: []
+      responses:
+        '201':
+          description: The request has succeeded and a new resource has been created as a result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventType'
+        '409':
+          description: Тип встречи с таким идентификатором уже существует.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventTypeExistsError'
+        '422':
+          description: Данные запроса не прошли проверку.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+      tags:
+        - Типы встреч
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventType'
+  /api/event-types/{eventTypeId}:
+    get:
+      operationId: getEventType
+      description: Один тип встречи.
+      parameters:
+        - name: eventTypeId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventType'
+        '404':
+          description: Запрошенный ресурс не найден.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+      tags:
+        - Типы встреч
+  /api/event-types/{eventTypeId}/booking-window:
+    get:
+      operationId: getBookingWindow
+      description: 'Окно записи для типа встречи: слоты на ближайшие 14 дней с отметкой занятости.'
+      parameters:
+        - name: eventTypeId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingWindow'
+        '404':
+          description: Запрошенный ресурс не найден.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+      tags:
+        - Типы встреч
+  /api/health:
+    get:
+      operationId: getHealth
+      description: Проверка, что приложение запущено.
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+      tags:
+        - Служебное
+  /api/schedule:
+    get:
+      operationId: getSchedule
+      description: 'Расписание владельца: часовой пояс, рабочие часы и длина окна записи.'
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Schedule'
+      tags:
+        - Расписание
+components:
+  schemas:
+    Booking:
+      type: object
+      required:
+        - id
+        - eventType
+        - startTime
+        - endTime
+        - guestName
+        - guestEmail
+        - createdAt
+      properties:
+        id:
+          type: string
+        eventType:
+          $ref: '#/components/schemas/EventType'
+          description: Тип встречи, на который создана запись.
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        guestName:
+          type: string
+        guestEmail:
+          type: string
+        notes:
+          type: string
+          description: Заметка гостя для владельца.
+        createdAt:
+          type: string
+          format: date-time
+      description: 'Запись: встреча гостя с владельцем, занявшая слот.'
+    BookingWindow:
+      type: object
+      required:
+        - timeZone
+        - days
+      properties:
+        timeZone:
+          type: string
+          description: Часовой пояс владельца (IANA), в котором заданы даты и рабочие часы.
+        days:
+          type: array
+          items:
+            $ref: '#/components/schemas/BookingWindowDay'
+          description: Ровно 14 дней подряд, первый из них сегодняшний.
+      description: 'Окно записи: ближайшие 14 календарных дней, начиная с сегодняшнего.'
+    BookingWindowDay:
+      type: object
+      required:
+        - date
+        - slots
+      properties:
+        date:
+          type: string
+          format: date
+          description: Дата в часовом поясе владельца.
+        slots:
+          type: array
+          items:
+            $ref: '#/components/schemas/Slot'
+          description: Слоты дня по возрастанию времени начала.
+      description: Слоты одного календарного дня.
+    CreateBookingRequest:
+      type: object
+      required:
+        - eventTypeId
+        - startTime
+        - guestName
+        - guestEmail
+      properties:
+        eventTypeId:
+          type: string
+          description: Идентификатор типа встречи.
+        startTime:
+          type: string
+          format: date-time
+          description: Начало выбранного слота. Должно совпадать с началом свободного слота из окна записи.
+        guestName:
+          type: string
+          minLength: 1
+          maxLength: 80
+          pattern: \S
+          description: Имя гостя. Не может состоять из одних пробелов.
+        guestEmail:
+          type: string
+          maxLength: 254
+          format: email
+        notes:
+          type: string
+          maxLength: 500
+      description: Данные, которые гость отправляет при создании записи.
+    EventType:
+      type: object
+      required:
+        - id
+        - title
+        - description
+        - durationMinutes
+      properties:
+        id:
+          type: string
+          minLength: 1
+          maxLength: 40
+          pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
+          description: Идентификатор, который задаёт владелец. Попадает в адрес страницы записи.
+        title:
+          type: string
+          minLength: 1
+          maxLength: 80
+          pattern: \S
+          description: Название, которое видит гость. Не может состоять из одних пробелов.
+        description:
+          type: string
+          maxLength: 500
+          description: Описание для гостя. Может быть пустым.
+        durationMinutes:
+          type: integer
+          format: int32
+          minimum: 5
+          maximum: 480
+          description: Длительность встречи в минутах. Слот этого типа длится столько же.
+      description: 'Тип встречи: шаблон, который заводит владелец.'
+    EventTypeExistsError:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          enum:
+            - event_type_exists
+        message:
+          type: string
+      description: Тип встречи с таким идентификатором уже существует.
+    Health:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum:
+            - ok
+    NotFoundError:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          enum:
+            - not_found
+        message:
+          type: string
+      description: Запрошенный ресурс не найден.
+    Schedule:
+      type: object
+      required:
+        - timeZone
+        - workDayStart
+        - workDayEnd
+        - windowDays
+      properties:
+        timeZone:
+          type: string
+          description: Часовой пояс владельца (IANA). В нём заданы рабочие часы и даты окна записи.
+        workDayStart:
+          type: string
+          description: Начало рабочего дня, `ЧЧ:ММ`.
+        workDayEnd:
+          type: string
+          description: Конец рабочего дня, `ЧЧ:ММ`. Слот должен закончиться не позже.
+        windowDays:
+          type: integer
+          format: int32
+          description: Длина окна записи в календарных днях, считая сегодняшний.
+      description: 'Расписание владельца: когда и на сколько дней вперёд гости могут записываться.'
+    Slot:
+      type: object
+      required:
+        - startTime
+        - endTime
+        - available
+      properties:
+        startTime:
+          type: string
+          format: date-time
+          description: Начало слота.
+        endTime:
+          type: string
+          format: date-time
+          description: 'Конец слота: начало плюс длительность типа встречи.'
+        available:
+          type: boolean
+          description: 'Свободен ли слот: он ещё не начался и не пересекается ни с одной записью.'
+      description: 'Слот: интервал, на который гость может записаться.'
+    SlotTakenError:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          enum:
+            - slot_taken
+        message:
+          type: string
+      description: Выбранное время пересекается с существующей записью.
+    ValidationError:
+      type: object
+      required:
+        - code
+        - message
+        - issues
+      properties:
+        code:
+          type: string
+          enum:
+            - validation_error
+        message:
+          type: string
+        issues:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationIssue'
+      description: Данные запроса не прошли проверку.
+    ValidationIssue:
+      type: object
+      required:
+        - field
+        - message
+      properties:
+        field:
+          type: string
+          description: Поле запроса, к которому относится замечание.
+        message:
+          type: string
+      description: Одно замечание к данным запроса.

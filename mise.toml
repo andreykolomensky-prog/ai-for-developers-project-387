@@ -1,0 +1,96 @@
+[tools]
+hk = "2.12.0"
+node = "26.13.1"
+
+[env]
+_.path = ["{{config_root}}/node_modules/.bin"]
+
+[hooks]
+# После установки инструментов подключаем git-хуки из hk.pkl.
+postinstall = "hk install --mise"
+
+[tasks.install]
+description = "Установить зависимости по package-lock.json"
+run = "npm ci"
+sources = ["package.json", "package-lock.json"]
+outputs = ["node_modules/.package-lock.json"]
+
+[tasks.generate]
+description = "Сгенерировать OpenAPI из TypeSpec, клиентский SDK и серверные типы"
+depends = ["install"]
+run = ["tsp compile api/main.tsp", "openapi-ts"]
+
+[tasks."generate:check"]
+description = "Проверить, что сгенерированные файлы в репозитории совпадают с контрактом"
+depends = ["generate"]
+# Свежий результат генерации сравнивается с индексом git: проходит и закоммиченное,
+# и подготовленное к коммиту состояние. Новые неотслеживаемые файлы тоже считаются расхождением.
+run = """
+dirs="api/generated web/src/api/generated server/generated"
+changed=$(git diff --name-only -- $dirs)
+untracked=$(git ls-files --others --exclude-standard -- $dirs)
+if [ -n "$changed$untracked" ]; then
+  echo "Сгенерированные файлы не совпадают с контрактом. Выполните mise run generate и добавьте результат в коммит:"
+  echo "$changed"
+  echo "$untracked"
+  exit 1
+fi
+"""
+
+[tasks."dev:server"]
+description = "Бекенд с перезапуском при изменениях, http://localhost:3000"
+depends = ["generate"]
+run = "node --watch server/main.ts"
+
+[tasks."dev:web"]
+description = "Фронтенд (Vite) с прокси на бекенд, http://localhost:5173"
+depends = ["generate"]
+run = "vite"
+
+[tasks.dev]
+description = "Бекенд и фронтенд в режиме разработки"
+depends = ["dev:server", "dev:web"]
+
+[tasks.build]
+description = "Собрать фронтенд в dist/web"
+depends = ["generate"]
+run = "vite build"
+
+[tasks.start]
+description = "Запустить приложение как в продакшене: сервер отдаёт API и собранный фронтенд"
+depends = ["build"]
+run = "node server/main.ts"
+
+[tasks.lint]
+description = "Линтер и проверка форматирования"
+depends = ["generate"]
+run = ["oxlint", "oxfmt --check"]
+
+[tasks.format]
+description = "Исправить форматирование и автоисправимые замечания линтера"
+depends = ["install"]
+run = ["oxfmt", "oxlint --fix"]
+
+[tasks.typecheck]
+description = "Проверка типов"
+depends = ["generate"]
+run = "tsc -b"
+
+[tasks.test]
+description = "API-тесты и тесты интерфейса на Vitest"
+depends = ["generate"]
+run = "vitest run"
+
+[tasks."e2e:browser"]
+description = "Установить браузер для Playwright"
+depends = ["install"]
+run = "playwright install --with-deps chromium"
+
+[tasks.e2e]
+description = "Браузерный сценарий бронирования с настоящим сервером"
+depends = ["build", "e2e:browser"]
+run = "playwright test"
+
+[tasks.check]
+description = "Все проверки: линтер, типы, генерация, тесты, браузерный сценарий. Эту же команду запускает CI"
+depends = ["lint", "typecheck", "test", "generate:check", "e2e"]

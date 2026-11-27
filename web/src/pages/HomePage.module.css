@@ -1,0 +1,7 @@
+.hero {
+  min-height: calc(100dvh - var(--app-shell-header-height, 0px));
+  background:
+    radial-gradient(40rem 26rem at 15% 10%, light-dark(#dbe4ff, #25324d), transparent 70%),
+    radial-gradient(34rem 22rem at 90% 0%, light-dark(#ffe8cc, #4a3320), transparent 70%),
+    light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-8));
+}

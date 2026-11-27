@@ -1,0 +1,15 @@
+node_modules
+dist
+test-results
+playwright-report
+*.local
+*.log
+.env
+.env.*
+!.env.example
+.DS_Store
+.idea
+.vscode/*
+!.vscode/extensions.json
+# Локальная конфигурация MCP создаётся из .mcp.json.example
+.mcp.json
