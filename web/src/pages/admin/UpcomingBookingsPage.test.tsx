@@ -40,13 +40,35 @@ test('владелец видит встречи всех типов по дня
   expect(tuesday.getByText('Обсудим запуск')).toBeVisible()
   expect(tuesday.getByText('Знакомство')).toBeVisible()
   const phone = tuesday.getByRole('link', { name: '+7 (999) 123-45-67' })
-  expect(phone).toHaveAttribute('href', 'tel:+7 (999) 123-45-67')
+  expect(phone).toHaveAttribute('href', 'tel:+79991234567')
 
   const wednesday = within(screen.getByRole('region', { name: 'среда, 4 марта' }))
   expect(wednesday.getByText('14:00–15:00')).toBeVisible()
   expect(wednesday.getByText('Разбор задачи')).toBeVisible()
   // У записи без телефона строки с номером нет.
   expect(wednesday.queryByRole('link')).not.toBeInTheDocument()
+})
+
+test('номер с пробелами, скобками и дефисами даёт tel-адрес только из цифр и ведущего плюса', async () => {
+  fakeApi.eventTypes = [intro]
+  fakeApi.bookings = [
+    {
+      id: 'b1',
+      eventType: intro,
+      startTime: '2026-03-03T07:00:00.000Z',
+      endTime: '2026-03-03T07:30:00.000Z',
+      guestName: 'Анна Гостева',
+      guestEmail: 'anna@example.com',
+      guestPhone: '+7 (999) 123-45-67',
+      createdAt: '2026-03-02T07:30:00.000Z',
+    },
+  ]
+  renderApp('/admin')
+
+  const tuesday = within(await screen.findByRole('region', { name: 'вторник, 3 марта' }))
+  const phone = tuesday.getByRole('link', { name: '+7 (999) 123-45-67' })
+  expect(phone.getAttribute('href')).toMatch(/^tel:\+?\d+$/)
+  expect(phone).toHaveAttribute('href', 'tel:+79991234567')
 })
 
 test('пока никто не записался, владелец видит подсказку', async () => {
