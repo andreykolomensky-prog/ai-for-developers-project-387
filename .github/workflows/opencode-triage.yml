@@ -1,0 +1,62 @@
+name: opencode-triage
+
+# Автотриаж: предварительный разбор нового входящего обращения.
+on:
+  issues:
+    types: [opened]
+
+concurrency:
+  group: opencode-triage-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  triage:
+    # Разбираем только обращения доверенных участников. Спецификации и тикеты,
+    # которые публикуют скиллы to-spec и to-tickets, уже согласованы: они несут
+    # метку ready-for-agent и повторно не разбираются.
+    if: >-
+      github.event.issue.user.type != 'Bot' &&
+      contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.issue.author_association) &&
+      !contains(github.event.issue.labels.*.name, 'ready-for-agent')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write
+      # Метки состояния агент ставит командой gh с GH_TOKEN.
+      issues: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup-opencode
+
+      - name: Разобрать обращение
+        run: opencode github run
+        env:
+          MODEL: opencode/deepseek-v4.1-flash
+          SHARE: 'false'
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PROMPT: |
+            Это новое входящее обращение в трекере проекта. Сделай предварительный разбор
+            по скиллу triage из .claude/skills/triage/SKILL.md. Сначала прочитай AGENTS.md,
+            docs/agents/ и GLOSSARY.md.
+
+            Что проверить:
+            1. Что приложение уже умеет по теме обращения. Ищи по смыслу, а не только по
+               словам автора, и назови файлы, в которых смотрел.
+            2. Категория: bug или enhancement. Для bug попробуй подтвердить описанное
+               поведение по коду и тестам.
+            3. Хватает ли данных, чтобы согласовать поведение. Если нет, задай конкретные
+               вопросы и к каждому предложи рекомендуемый ответ.
+            4. Нет ли уже открытого issue о том же. Если есть, дай на него ссылку.
+
+            Результат: один комментарий в этом issue. Он начинается с дисклеймера из скилла
+            и содержит разделы «Что уже умеет приложение», «Оценка и следующий шаг» и, если
+            нужны, «Вопросы». Поставь через gh одну метку категории (bug или enhancement)
+            и одну метку состояния: needs-info, если нужны ответы автора, иначе needs-triage.
+
+            Ограничения: код не меняй, ветки и pull request не создавай, скиллы to-spec,
+            to-tickets и implement-spec не запускай. Брать ли задачу в работу, решает человек.
