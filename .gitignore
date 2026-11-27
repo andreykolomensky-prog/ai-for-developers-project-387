@@ -2,6 +2,9 @@ node_modules
 dist
 test-results
 playwright-report
+# Отчёты регулярного аудита хранятся артефактами Actions
+audit-report
+browser-check
 *.local
 *.log
 .env
