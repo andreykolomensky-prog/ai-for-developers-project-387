@@ -10,6 +10,7 @@
     "web/src/api/generated",
     "server/generated",
     ".claude/skills",
-    "skills-lock.json"
+    "skills-lock.json",
+    "docs/story/src/story.html"
   ]
 }
