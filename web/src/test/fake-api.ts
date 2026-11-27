@@ -18,6 +18,8 @@ type FakeApi = {
   bookings: Booking[]
   /** Адреса, которые сервер считает некорректными: запись с ними получает 422. */
   rejectedEmails: string[]
+  /** Телефоны, которые сервер считает некорректными: запись с ними получает 422. */
+  rejectedPhones: string[]
   schedule: Schedule
 }
 
@@ -39,6 +41,7 @@ export const fakeApi: FakeApi = {
   takenStarts: [],
   bookings: [],
   rejectedEmails: [],
+  rejectedPhones: [],
   schedule: moscowSchedule,
 }
 
@@ -49,6 +52,7 @@ export function resetFakeApi() {
   fakeApi.takenStarts = []
   fakeApi.bookings = []
   fakeApi.rejectedEmails = []
+  fakeApi.rejectedPhones = []
   fakeApi.schedule = moscowSchedule
 }
 
@@ -68,6 +72,16 @@ async function createBooking(request: Request): Promise<Response> {
         code: 'validation_error',
         message: 'Данные запроса не прошли проверку',
         issues: [{ field: 'guestEmail', message: 'must match format "email"' }],
+      },
+      { status: 422 },
+    )
+  }
+  if (body.guestPhone && fakeApi.rejectedPhones.includes(body.guestPhone)) {
+    return Response.json(
+      {
+        code: 'validation_error',
+        message: 'Данные запроса не прошли проверку',
+        issues: [{ field: 'guestPhone', message: 'invalid phone' }],
       },
       { status: 422 },
     )

@@ -81,6 +81,7 @@ type FlowProps = {
 type GuestDetails = {
   guestName: string
   guestEmail: string
+  guestPhone: string
   notes: string
 }
 
@@ -88,6 +89,7 @@ type GuestDetails = {
 const fieldMessages: Record<keyof GuestDetails, string> = {
   guestName: 'Укажите имя',
   guestEmail: 'Укажите email в формате name@example.com',
+  guestPhone: 'Телефон должен содержать от 5 до 30 символов: цифры, +, пробелы, дефисы и скобки',
   notes: 'Заметка слишком длинная',
 }
 
@@ -104,7 +106,7 @@ function BookingFlow({ eventType, bookingWindow, fetchedAt }: FlowProps) {
 
   const form = useForm<GuestDetails>({
     mode: 'uncontrolled',
-    initialValues: { guestName: '', guestEmail: '', notes: '' },
+    initialValues: { guestName: '', guestEmail: '', guestPhone: '', notes: '' },
     validate: {
       guestName: isNotEmpty('Укажите имя'),
       guestEmail: isEmail('Укажите email в формате name@example.com'),
@@ -112,6 +114,7 @@ function BookingFlow({ eventType, bookingWindow, fetchedAt }: FlowProps) {
     transformValues: (values) => ({
       guestName: values.guestName.trim(),
       guestEmail: values.guestEmail.trim(),
+      guestPhone: values.guestPhone.trim(),
       notes: values.notes.trim(),
     }),
   })
@@ -145,6 +148,7 @@ function BookingFlow({ eventType, bookingWindow, fetchedAt }: FlowProps) {
       startTime: selectedSlot.startTime,
       guestName: details.guestName,
       guestEmail: details.guestEmail,
+      ...(details.guestPhone ? { guestPhone: details.guestPhone } : {}),
       ...(details.notes ? { notes: details.notes } : {}),
     })
     if (result.ok) {
@@ -286,6 +290,15 @@ function BookingFlow({ eventType, bookingWindow, fetchedAt }: FlowProps) {
                   key={form.key('guestEmail')}
                   {...form.getInputProps('guestEmail')}
                 />
+                <TextInput
+                  label="Телефон"
+                  description="Необязательно: чтобы владелец мог позвонить"
+                  placeholder="+7 999 123-45-67"
+                  autoComplete="tel"
+                  inputMode="tel"
+                  key={form.key('guestPhone')}
+                  {...form.getInputProps('guestPhone')}
+                />
                 <Textarea
                   label="Заметка"
                   description="Необязательно: о чём хотите поговорить"
@@ -409,6 +422,7 @@ function Confirmation({ booking, timeZone }: { booking: Booking; timeZone: strin
           value={`${formatDate(calendarDateOf(booking.startTime, timeZone))}, ${formatTimeRange(booking.startTime, booking.endTime, timeZone)} (${timeZoneLabel(timeZone)})`}
         />
         <Summary label="Email для связи" value={booking.guestEmail} />
+        {booking.guestPhone && <Summary label="Телефон для связи" value={booking.guestPhone} />}
         {booking.notes && <Summary label="Заметка" value={booking.notes} />}
       </Stack>
       <Group mt="xl">

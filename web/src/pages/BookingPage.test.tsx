@@ -113,6 +113,7 @@ test('гость записывается: форма отправляет вы�
 
   expect(await screen.findByRole('heading', { level: 1, name: 'Вы записаны' })).toBeVisible()
   expect(screen.getByText(/вторник, 3 марта, 09:00–09:30/)).toBeVisible()
+  expect(screen.queryByText('Телефон для связи')).not.toBeInTheDocument()
   expect(fakeApi.bookingRequests).toEqual([
     {
       eventTypeId: 'intro',
@@ -122,6 +123,79 @@ test('гость записывается: форма отправляет вы�
       notes: 'Обсудим запуск',
     },
   ])
+})
+
+test('поле телефона необязательное и объясняет, зачем нужно', async () => {
+  const user = userEvent.setup()
+  openBookingPage()
+
+  await user.click(await screen.findByRole('button', { name: /09:00–09:30/ }))
+  await user.click(screen.getByRole('button', { name: 'Продолжить' }))
+
+  const phone = screen.getByLabelText(/Телефон/)
+  expect(phone).toBeVisible()
+  expect(phone).not.toBeRequired()
+  expect(screen.getByText('Необязательно: чтобы владелец мог позвонить')).toBeVisible()
+})
+
+test('гость оставляет телефон: он уходит без пробелов по краям и виден в подтверждении', async () => {
+  const user = userEvent.setup()
+  openBookingPage()
+
+  await user.click(await screen.findByRole('button', { name: /09:00–09:30/ }))
+  await user.click(screen.getByRole('button', { name: 'Продолжить' }))
+  await user.type(screen.getByLabelText(/Имя/), 'Анна Гостева')
+  await user.type(screen.getByLabelText(/Email/), 'anna@example.com')
+  await user.type(screen.getByLabelText(/Телефон/), '  +7 (999) 123-45-67 ')
+  await user.click(screen.getByRole('button', { name: 'Записаться' }))
+
+  expect(await screen.findByRole('heading', { level: 1, name: 'Вы записаны' })).toBeVisible()
+  expect(screen.getByText('Телефон для связи')).toBeVisible()
+  expect(screen.getByText('+7 (999) 123-45-67')).toBeVisible()
+  expect(fakeApi.bookingRequests).toEqual([
+    {
+      eventTypeId: 'intro',
+      startTime: '2026-03-03T06:00:00.000Z',
+      guestName: 'Анна Гостева',
+      guestEmail: 'anna@example.com',
+      guestPhone: '+7 (999) 123-45-67',
+    },
+  ])
+})
+
+test('телефон из одних пробелов не отправляется', async () => {
+  const user = userEvent.setup()
+  openBookingPage()
+
+  await user.click(await screen.findByRole('button', { name: /09:00–09:30/ }))
+  await user.click(screen.getByRole('button', { name: 'Продолжить' }))
+  await user.type(screen.getByLabelText(/Имя/), 'Анна Гостева')
+  await user.type(screen.getByLabelText(/Email/), 'anna@example.com')
+  await user.type(screen.getByLabelText(/Телефон/), '   ')
+  await user.click(screen.getByRole('button', { name: 'Записаться' }))
+
+  expect(await screen.findByRole('heading', { level: 1, name: 'Вы записаны' })).toBeVisible()
+  expect(fakeApi.bookingRequests[0]).not.toHaveProperty('guestPhone')
+})
+
+test('если сервер отклонил телефон, гость видит ошибку у поля и остаётся в форме', async () => {
+  const user = userEvent.setup()
+  openBookingPage()
+  fakeApi.rejectedPhones = ['123']
+
+  await user.click(await screen.findByRole('button', { name: /09:00–09:30/ }))
+  await user.click(screen.getByRole('button', { name: 'Продолжить' }))
+  await user.type(screen.getByLabelText(/Имя/), 'Анна Гостева')
+  await user.type(screen.getByLabelText(/Email/), 'anna@example.com')
+  await user.type(screen.getByLabelText(/Телефон/), '123')
+  await user.click(screen.getByRole('button', { name: 'Записаться' }))
+
+  expect(await screen.findByRole('alert')).toHaveTextContent('Проверьте данные формы')
+  expect(screen.getByText(/Телефон должен содержать/)).toBeVisible()
+  // Слот остаётся выбранным, форма не закрывается, введённые данные сохранены.
+  expect(screen.getByLabelText(/Телефон/)).toHaveValue('123')
+  const summary = within(screen.getByRole('region', { name: 'Выбранная встреча' }))
+  expect(summary.getByText('09:00–09:30')).toBeVisible()
 })
 
 test('если время заняли, гость видит сообщение и выбирает другой слот, не вводя данные заново', async () => {
